@@ -1,0 +1,71 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  bckstrgrg: "rg-sco-tfstate-sea-01"
+  bckstrgstracc: "terraformstoragescosea01"
+  bckstrky: "terraform.tfstate"
+  anyTfChanges: false
+
+stages:
+  - stage: tfvalidate
+    jobs:
+      - job: validate
+        continueOnError: false
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.6.2'
+          
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
+              backendServiceArm: 'umi-sco-ado-dev-sea-01'
+              backendAzureRmResourceGroupName: '$(bckstrgrg)'
+              backendAzureRmStorageAccountName: '$(bckstrgstracc)'
+              backendAzureRmContainerName: 'terraform-dev'
+              backendAzureRmKey: '$(bckstrky)'
+
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
+              commandOptions: '-input=false -out=tf.plan -var-file=./tfvars/devv.tfvars'
+              environmentServiceNameAzureRM: 'umi-sco-ado-dev-sea-01'
+
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                # Write-Host "LASTEXITCODE : $LASTEXITCODE"
+                                      $plan = $(terraform show -json tfplan | ConvertFrom-Json)
+                                      $actions = $plan.resource_changes.change.actions
+                                      Write-Host "Terraform actions : $actions"
+                                      if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
+                                      {
+                                        Write-Host "Terraform will perform the following actions : $actions"
+                                        Write-Host "##vso[task.setvariable variable=anyTfChanges;]true"
+                                      }
+                                      else
+                                      {
+                                        Write-Host "There is no change detected in Terraform tfplan file"
+                                      }
+          
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
+              commandOptions: 'tfplan'
+              environmentServiceNameAzureRM: 'umi-sco-ado-dev-sea-01'
