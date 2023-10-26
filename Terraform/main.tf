@@ -13,7 +13,7 @@ data "azurerm_resource_group" "rg_name_dev" {
 }
 
 resource "azurerm_storage_account" "asbstorageacc" {
-  count                    = var.is_dev ? 1 : 0
+  count                    = var.deploy_tier ? 1 : 0
   name                     = "asbstorageacc"
   resource_group_name      = data.azurerm_resource_group.rg_name_dev.name
   location                 = data.azurerm_resource_group.rg_name_dev.location
@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "asbstorageacc" {
 }
 
 resource "azurerm_storage_container" "logicAppTrigger" {
-  count                 = var.is_dev ? 1 : 0
+  count                 = var.deploy_tier ? 1 : 0
   name                  = "logicapptrigger"
   storage_account_name  = azurerm_storage_account.asbstorageacc[0].name
   container_access_type = "private"

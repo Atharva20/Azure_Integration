@@ -19,10 +19,12 @@ stages:
         continueOnError: false
         steps:
           - task: TerraformInstaller@1
+            displayName: terraform Install
             inputs:
               terraformVersion: '1.6.2'
           
           - task: TerraformTaskV4@4
+            displayName: terraform init
             inputs:
               provider: 'azurerm'
               command: 'init'
@@ -34,6 +36,7 @@ stages:
               backendAzureRmKey: 'terraform.tfstate'
 
           - task: TerraformTaskV4@4
+            displayName: terraform plan
             inputs:
               provider: 'azurerm'
               command: 'plan'
@@ -60,6 +63,7 @@ stages:
                                       }
           
           - task: TerraformTaskV4@4
+            displayName: terraform apply
             inputs:
               provider: 'azurerm'
               command: 'apply'
