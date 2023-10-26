@@ -10,9 +10,6 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  bckstrgrg: "rg-sco-tfstate-sea-01"
-  bckstrgstracc: "terraformstoragescosea01"
-  bckstrky: "terraform.tfstate"
   anyTfChanges: false
 
 stages:
@@ -31,10 +28,10 @@ stages:
               command: 'init'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
               backendServiceArm: 'umi-sco-ado-dev-sea-01'
-              backendAzureRmResourceGroupName: '$(bckstrgrg)'
-              backendAzureRmStorageAccountName: '$(bckstrgstracc)'
+              backendAzureRmResourceGroupName: 'rg-sco-tfstate-sea-01'
+              backendAzureRmStorageAccountName: 'terraformstoragescosea01'
               backendAzureRmContainerName: 'terraform-dev'
-              backendAzureRmKey: '$(bckstrky)'
+              backendAzureRmKey: 'terraform.tfstate'
 
           - task: TerraformTaskV4@4
             inputs:
