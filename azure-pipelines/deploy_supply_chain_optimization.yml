@@ -38,7 +38,7 @@ stages:
               provider: 'azurerm'
               command: 'plan'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
-              commandOptions: '-input=false -out=tf.plan -var-file="./tfvars/devv.tfvars"'
+              commandOptions: '-input=false -out=tf.plan -var-file="./tfvars/dev.tfvars"'
               environmentServiceNameAzureRM: 'umi-sco-ado-dev-sea-01'
 
           - task: PowerShell@2
