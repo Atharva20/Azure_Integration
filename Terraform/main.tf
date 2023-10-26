@@ -8,6 +8,10 @@ terraform {
 
 }
 
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_resource_group" "rg_name_dev" {
   name = "rg-sco-dev-sea-01"
 }
