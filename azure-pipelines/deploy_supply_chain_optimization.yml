@@ -29,7 +29,7 @@ stages:
               provider: 'azurerm'
               command: 'init'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
-              backendServiceArm: 'managed-idenity'
+              backendServiceArm: 'managed_identity'
               backendAzureRmResourceGroupName: 'rg-sco-tfstate-sea-01'
               backendAzureRmStorageAccountName: 'terraformstoragescosea01'
               backendAzureRmContainerName: 'terraform-dev'
@@ -42,7 +42,7 @@ stages:
               command: 'plan'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
               commandOptions: '-input=false -out=tf.plan -var-file="./tfvars/dev.tfvars"'
-              environmentServiceNameAzureRM: 'managed-idenity'
+              environmentServiceNameAzureRM: 'managed_identity'
 
           - task: PowerShell@2
             inputs:
@@ -69,4 +69,4 @@ stages:
               command: 'apply'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
               commandOptions: 'tfplan'
-              environmentServiceNameAzureRM: 'managed-idenity'
+              environmentServiceNameAzureRM: 'managed_identity'
