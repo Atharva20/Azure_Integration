@@ -17,3 +17,15 @@ variable "env" {
   description = "The environment to deploy resources in."
   type        = string
 }
+
+variable "account_tier" {
+  description = "The account tier in which storage account will be billed by."
+  type        = string
+  default     = "Standard"
+}
+
+variable "account_replication_type" {
+  description = "In how many regions we want the sa to be replicated"
+  type        = string
+  default     = "LRS"
+}

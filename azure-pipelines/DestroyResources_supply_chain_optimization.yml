@@ -3,9 +3,18 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+trigger:
+- feature/*
 
 pool:
   vmImage: ubuntu-latest
+
+variables:
+  bckstrgrg: "rg-sco-tfstate-sea-01"
+  bckstrgstracc: "sascotfstatesea01"
+  bckstrgctrnm: "terraform"
+  bckstrky: "terraform.tfstate"
+  anyTfChanges: false
 
 steps:
 - script: echo Hello, world!
