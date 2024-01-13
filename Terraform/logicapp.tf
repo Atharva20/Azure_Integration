@@ -1,6 +1,6 @@
 # resource "azurerm_storage_account" "logicappsa" {
 #   count                    = var.deploy_tier ? 1 : 0
-#   name                     = "logicazseasa01t"
+#   name                     = local.logic_storage_account_name
 #   resource_group_name      = azurerm_resource_group.rg_dev[0].name
 #   location                 = azurerm_resource_group.rg_dev[0].location
 #   account_tier             = var.account_tier
@@ -23,7 +23,7 @@
 
 # resource "azurerm_logic_app_standard" "testlogicapp" {
 #   count                      = var.deploy_tier ? 1 : 0
-#   name                       = "test-azure-logic"
+#   name                       = local.logic_name
 #   resource_group_name        = azurerm_resource_group.rg_dev[0].name
 #   location                   = azurerm_resource_group.rg_dev[0].location
 #   app_service_plan_id        = azurerm_app_service_plan.aspl[0].id

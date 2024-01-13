@@ -1,96 +1,90 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Azure.Storage.Blobs;
-using Azure.Identity;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 using AzureAutomation.Interfaces;
 using AzureAutomation.Models;
 using System.Collections.Generic;
+using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Mvc;
+using AzureAutomation.Transformation;
 
 namespace AzureAutomation.Functions
 {
-    public class example
+    public class Example
     {
-        private readonly IConfiguration configuration;
+        //private readonly IConfiguration configuration;
         private readonly IBlobStorageService blobStorageService;
-        List<DataProcessingResponse> allShipments = new();
+        private readonly IServiceBusService serviceBusService;
 
-        public example(IBlobStorageService blobStorageService)
+
+        public Example(IBlobStorageService _blobStorageService, IServiceBusService _serviceBusService)
         {
-            this.blobStorageService = blobStorageService;
+            this.blobStorageService = _blobStorageService;
+            this.serviceBusService = _serviceBusService;
         }
 
         [FunctionName("exampleseaaz01")]
-        public async Task<List<string>> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
+            
+            string outputBlobName = string.Empty;
+
+            List<DataProcessingResponse> allShipments = new();
 
             string connectionString = "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;";//"UseDevelopmentStorage=true";
 
-            ShipmentDataTransformation shipmentDataTransformation = new(log, blobStorageService);
+            ShipmentDataTransformation shipmentDataTransformation = new(this.blobStorageService);
 
             BlobServiceClient serviceClient = new(connectionString);
 
-            BlobContainerClient blobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientstorageaccountname");
+            BlobContainerClient blobContainerClient = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientstorageaccountname");
 
+            BlobContainerClient blobContainerClient2 = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientoutputaccountname");
+            
             var allShipmentDatajsons = blobContainerClient.GetBlobsAsync(); //AsyncPageable<BlobItem>
 
-            List<string> finalOutput = new();
+            string blobDirectoryLoc = $"{DateTime.Now:yyyy/MM/dd/HH/mm}";
 
-
-            await foreach (var shipmentData in allShipmentDatajsons)
+            await foreach (BlobItem shipmentData in allShipmentDatajsons)
             {
                 try
                 {
-                    var currentShipmentName = shipmentData.Name;
+                    BlobClient blobClient = blobContainerClient.GetBlobClient(shipmentData.Name);
 
-                    BlobClient blobClient = blobContainerClient.GetBlobClient(currentShipmentName);
-
-                    if (await blobClient.ExistsAsync())
+                    using (MemoryStream stream = new())
                     {
-                        using (MemoryStream stream = new())
-                        {
-                            await blobClient.DownloadToAsync(stream);
+                        await blobClient.DownloadToAsync(stream);
 
-                            string blobContent = Encoding.UTF8.GetString(stream.ToArray());
+                        string blobContent = Encoding.UTF8.GetString(stream.ToArray());
 
-                            DataProcessingResponse jsonData = JsonConvert.DeserializeObject<DataProcessingResponse>(blobContent);
+                        DataProcessingResponse jsonData = JsonConvert.DeserializeObject<DataProcessingResponse>(blobContent);
 
-                            allShipments.Add(jsonData);
+                        List<string> outputCsv = shipmentDataTransformation.TransformJsonToCsv(jsonData);
 
-                            //allContent.Add(Convert.ToString(blobContents));
+                        outputBlobName = $"transformed-shipment-csv/{blobDirectoryLoc}/{outputCsv[0]}.txt";
 
-                            //await blobClient.DeleteAsync();
-                        }
+                        blobStorageService.AppendContentToBlob(blobContainerClient2, outputBlobName, outputCsv[1]);
+
+                        await blobClient.DeleteAsync();
                     }
+
                 }
-
-
                 catch (Exception ex)
                 {
-                    log.LogInformation($"There was an issue: {ex.Message} and {ex.StackTrace}");
+                    log.LogInformation($"There was an issue for the blob {shipmentData.Name} with error: {ex.Message} and {ex.StackTrace}");
                 }
-
             }
-
-            finalOutput = shipmentDataTransformation.RouteJsonData(allShipments);
-
-            BlobClient blobClient1 = blobContainerClient.GetBlobClient("output.txt");
-
-            var abc = blobStorageService.UploadBlobContent(blobClient1, finalOutput[0]);
-
-            return finalOutput;
-
+            return new OkObjectResult(outputBlobName);
         }
     }
 }

@@ -16,5 +16,7 @@ namespace AzureAutomation.Interfaces
         void UploadDataToBLob(BlobClient blobClient, string content);
 
         Task UploadBlobContent(BlobClient blobClient, string blobContent);
+
+        void AppendContentToBlob(BlobContainerClient blobContainerClient, string blobName, string blobData);
     }
 }

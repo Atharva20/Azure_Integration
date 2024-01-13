@@ -1,4 +1,4 @@
-namespace AzureAutomation.Functions
+namespace AzureAutomation.Transformation
 {
     using System;
     using System.Collections.Generic;
@@ -11,14 +11,12 @@ namespace AzureAutomation.Functions
 
     public class ShipmentDataTransformation
     {
-        private readonly ILogger logger;
         private readonly IBlobStorageService blobStorageService;
 
         OutputStrucutre outputStrucutre = new();
 
-        public ShipmentDataTransformation(ILogger logger, IBlobStorageService blobStorageService)
+        public ShipmentDataTransformation( IBlobStorageService blobStorageService)
         {
-            this.logger = logger;
             this.blobStorageService = blobStorageService;
         }
 

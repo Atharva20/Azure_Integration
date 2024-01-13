@@ -29,3 +29,8 @@ variable "account_replication_type" {
   type        = string
   default     = "LRS"
 }
+
+variable "servicebus_ttl"{
+  type = string
+  default = "P7D"
+}
