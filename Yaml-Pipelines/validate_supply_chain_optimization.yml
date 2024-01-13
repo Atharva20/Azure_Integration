@@ -80,6 +80,5 @@ stages:
               provider: 'azurerm'
               command: 'apply'
               workingDirectory: '$(System.DefaultWorkingDirectory)/tf-deploy'
-              commandOptions: 'tfplan'
+              commandOptions: 'tfapply'
               environmentServiceNameAzureRM: 'Azure_devops_Pipeline_service_connection'
-

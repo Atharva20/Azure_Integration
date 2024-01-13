@@ -8,48 +8,39 @@
 #   enable_partitioning = false
 # }
 
-
-resource "azurerm_servicebus_namespace" "example" {
+resource "azurerm_servicebus_namespace" "servicebus_namespace" {
   count                    = var.deploy_tier ? 1 : 0
-  name                = "servicebus1234512345"
+  name                = local.servicebus_namespace
   location            = azurerm_resource_group.rg_dev[0].location
   resource_group_name = azurerm_resource_group.rg_dev[0].name
   sku                 = "Standard"
 }
 
-resource "azurerm_servicebus_topic" "example2" {
+resource "azurerm_servicebus_topic" "sbt-azureint-outbound" {
   count                    = var.deploy_tier ? 1 : 0
-  name         = "sbtmaoutbound"
-  namespace_id = azurerm_servicebus_namespace.example[0].id
+  name         = "sbt-azureint-outbound"
+  namespace_id = azurerm_servicebus_namespace.servicebus_namespace[0].id
 
   default_message_ttl = var.servicebus_ttl
   enable_partitioning = true
 }
 
-
-
 resource "azurerm_servicebus_subscription" "ask049"{
   count                    = var.deploy_tier ? 1 : 0
-  name = "ask049-paragon"
-  topic_id = azurerm_servicebus_topic.example2[0].id
+  name = "outbound-routing"
+  topic_id = azurerm_servicebus_topic.sbt-azureint-outbound[0].id
   max_delivery_count = 10
   default_message_ttl = var.servicebus_ttl
   dead_lettering_on_message_expiration = true
 }
 
-resource "azurerm_servicebus_subscription_rule" "example" {
+resource "azurerm_servicebus_subscription_rule" "outbound_subs_corelation_filter" {
   count                    = var.deploy_tier ? 1 : 0
-  name            = "Where_label_is_ask049"
+  name            = "outbound_subs_corelation_filter"
   subscription_id = azurerm_servicebus_subscription.ask049[0].id
   filter_type     = "CorrelationFilter"
 
   correlation_filter {
-    label = "ask049-paragon"
+    label = "outbound_subs"
   }
-}
-
-resource "azurerm_role_assignment" "example22" {
-  scope                = azurerm_servicebus_namespace.example[0].id
-  role_definition_name = "Azure Service Bus Data Owner"
-  principal_id         = azurerm_windows_function_app.testfunctionapp[0].identity[0].principal_id
 }

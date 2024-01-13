@@ -34,3 +34,7 @@ variable "servicebus_ttl"{
   type = string
   default = "P7D"
 }
+
+variable "alert_email"{
+  type = string
+}

@@ -1,18 +1,9 @@
-resource "azurerm_service_plan" "functionappconplan" {
-  count               = var.deploy_tier ? 1 : 0
-  name                = "functionappconplan"
-  resource_group_name = azurerm_resource_group.rg_dev[0].name
-  location            = azurerm_resource_group.rg_dev[0].location
-  os_type             = "Windows"
-  sku_name            = "Y1"
-}
-
-
-resource "azurerm_windows_function_app" "testfunctionapp" {
+resource "azurerm_windows_function_app" "azureintegration" {
   count               = var.deploy_tier ? 1 : 0
   name                = local.functionapp_name
   resource_group_name = azurerm_resource_group.rg_dev[0].name
   location            = azurerm_resource_group.rg_dev[0].location
+  tags = local.tags
 
   storage_account_name       = azurerm_storage_account.functionapp_storage_account[0].name
   storage_account_access_key = azurerm_storage_account.functionapp_storage_account[0].primary_access_key
@@ -25,6 +16,10 @@ resource "azurerm_windows_function_app" "testfunctionapp" {
   site_config {
   }
 
+  app_settings = {
+    "client_storage_account_url" = local.client_storage_account_url
+    "AzureWebJobs.PullMsgFromTargetBlobStorage.Disabled" = true
+  }
 }
 
 #   #   newtwork_rules
@@ -51,4 +46,3 @@ resource "azurerm_windows_function_app" "testfunctionapp" {
 # # }
 
 # #####################################################
-

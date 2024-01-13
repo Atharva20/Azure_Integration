@@ -11,6 +11,7 @@ using Azure.Messaging.ServiceBus;
 using System.Text;
 using Azure.Identity;
 using System;
+using AzureIntegration.Globals;
 using System.IO;
 
 namespace Company.Function
@@ -25,7 +26,6 @@ namespace Company.Function
             this.configuration = configuration;
             this.blobStorageService = blobStorageService;
         }
-
 
         [FunctionName("HttpTrigger1")]
         public async Task<string> Run(
@@ -43,7 +43,7 @@ namespace Company.Function
             {
 
 
-                BlobServiceClient serviceClient = blobStorageService.ConnectToTargetStorageAccountUsingManagedIdentity("https://saazdevsea01.blob.core.windows.net");
+                BlobServiceClient serviceClient = blobStorageService.ConnectToTargetStorageAccountUsingManagedIdentity(configuration["client_storage_account_url"]);
 
                 BlobContainerClient blobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientstorageaccount");
 
@@ -70,7 +70,9 @@ namespace Company.Function
 
                 var fullyQualifiedNamespace = "servicebus1234512345.servicebus.windows.net"; // servicebus1234512345.servicebus.windows.net
 
-                var queueName = "sbtmaoutbound/ask049-paragon"; // https://saazdevsea01.blob.core.windows.net/clientstorageaccount
+                var topicName = Globals.SB_TOPIC; // https://saazdevsea01.blob.core.windows.net/clientstorageaccount
+
+                var topicSubsName = Globals.SB_SUBSCRIPTION;
 
                 var messageBody = $"{asd.ToArray()} Hello, Service Bus!";
 
@@ -78,11 +80,11 @@ namespace Company.Function
 
                 var client = new ServiceBusClient(fullyQualifiedNamespace, new ManagedIdentityCredential());
 
-                var sender = client.CreateSender(queueName);
+                var sender = client.CreateSender($"{topicName}/{topicSubsName}");
 
                 ServiceBusMessage messages = new(Encoding.UTF8.GetBytes($"The message {asd.ToArray()} and {asd.Count} is sent successfully"))
                 {
-                    Subject = "ask049-paragon"
+                    Subject = "outbound_subs"
                 };
 
                 await sender.SendMessageAsync(messages);
