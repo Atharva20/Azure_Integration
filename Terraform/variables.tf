@@ -30,11 +30,11 @@ variable "account_replication_type" {
   default     = "LRS"
 }
 
-variable "servicebus_ttl"{
-  type = string
+variable "servicebus_ttl" {
+  type    = string
   default = "P7D"
 }
 
-variable "alert_email"{
+variable "alert_email" {
   type = string
 }

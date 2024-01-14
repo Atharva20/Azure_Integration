@@ -1,93 +1,119 @@
-// namespace AzureAutomation.Functions
-// {
-//     using System;
-//     using System.Text;
-//     using Microsoft.Azure.WebJobs;
-//     using Microsoft.Extensions.Logging;
-//     using Azure.Storage.Blobs;
-//     using System.Threading.Tasks;
-//     using Microsoft.Extensions.Configuration;
-//     using AzureAutomation.Interfaces;
-//     using System.Collections.Generic;
-//     using System.IO;
-//     using AzureAutomation.Models;
-//     using Newtonsoft.Json;
-//     using Azure;
-//     using Azure.Storage.Blobs.Models;
+namespace AzureAutomation.Functions
+{
+    using System;
+    using System.Text;
+    using Microsoft.Azure.WebJobs;
+    using Microsoft.Extensions.Logging;
+    using Azure.Storage.Blobs;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
+    using AzureAutomation.Interfaces;
+    using System.Collections.Generic;
+    using System.IO;
+    using AzureAutomation.Models;
+    using Newtonsoft.Json;
+    using Azure;
+    using Azure.Storage.Blobs.Models;
+    using AzureAutomation.Transformation;
+    using AzureIntegration.Globals;
+    using Azure.Messaging.ServiceBus;
+    using Azure.Identity;
 
-//     public class PullMsgFromClinet
-//     {
-//         private readonly IConfiguration configuration;
-//         private readonly IBlobStorageService blobStorageService;
-//         public PullMsgFromClinet(IConfiguration configuration, IBlobStorageService blobStorageService)
-//         {
-//             this.configuration = configuration;
-//             this.blobStorageService = blobStorageService;
-//         }
 
-//         [FunctionName("PullMsgFromTargetBlobStorage")]
-//         public async Task Run([TimerTrigger("0 */15 * * * *")] TimerInfo myTimer, ILogger log)
-//         {
-//             try
-//             {
-//                 log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+    public class PullMsgFromClinet
+    {
+        private readonly IConfiguration configuration;
+        private readonly IBlobStorageService blobStorageService;
+        public PullMsgFromClinet(IConfiguration configuration, IBlobStorageService blobStorageService)
+        {
+            this.configuration = configuration;
+            this.blobStorageService = blobStorageService;
+        }
 
-//                 List<DataProcessingResponse> allShipments = new();
+        [FunctionName("PullMsgFromTargetBlobStorage")]
+        public async Task Run([TimerTrigger("0 */15 * * * *")] TimerInfo myTimer, ILogger log)
+        {
+            try
+            {
+                log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
-//                 BlobContainerClient blobContainerClient = null;
+                string outputBlobName = string.Empty;
 
-//                 BlobServiceClient serviceClient = null;
+                BlobContainerClient blobContainerClient = null;
 
-//                 List<string> dataProcessingInput = new();
-//                 List<string> finalOutput = new();
+                BlobContainerClient blobContainerClient2 = null;
 
-//                 string blobServiceEndpoint = configuration["blob-storage-endpoint-url"];
+                BlobServiceClient serviceClient = null;
 
-//                 serviceClient = blobStorageService.ConnectToTargetStorageAccountUsingManagedIdentity(blobServiceEndpoint);
+                ShipmentDataTransformation shipmentDataTransformation = new(this.blobStorageService);
 
-//                 ShipmentDataTransformation shipmentDataTransformation = new(log, blobStorageService);
+                string blobServiceEndpoint = configuration["client_storage_account_url"];
 
-//                 blobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientStorageAccountName");
+                serviceClient = blobStorageService.ConnectToTargetStorageAccountUsingManagedIdentity(blobServiceEndpoint);
 
-//                 var allShipmentDatajsons = blobContainerClient.GetBlobsAsync(); //AsyncPageable<BlobItem>
+                blobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "inboundshipmetdata");
 
-//                 await foreach (var shipmentData in allShipmentDatajsons)
-//                 {
-//                     try
-//                     {
-//                         var currentShipmentName = shipmentData.Name;
+                blobContainerClient2 = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "outboundshipmetdata");
 
-//                         BlobClient blobClient = blobContainerClient.GetBlobClient(currentShipmentName);
+                string blobDirectoryLoc = $"{DateTime.Now:yyyy/MM/dd/HH/mm}";
 
-//                         if (await blobClient.ExistsAsync())
-//                         {
-//                             using (MemoryStream stream = new())
-//                             {
-//                                 await blobClient.DownloadToAsync(stream);
+                var allShipmentDatajsons = blobContainerClient.GetBlobsAsync(); //AsyncPageable<BlobItem>
 
-//                                 string blobContent = Encoding.UTF8.GetString(stream.ToArray());
+                await foreach (var shipmentData in allShipmentDatajsons)
+                {
+                    try
+                    {
+                        BlobClient blobClient = blobContainerClient.GetBlobClient(shipmentData.Name);
 
-//                                 DataProcessingResponse jsonData = JsonConvert.DeserializeObject<DataProcessingResponse>(blobContent);
+                        using (MemoryStream stream = new())
+                        {
+                            await blobClient.DownloadToAsync(stream);
 
-//                                 allShipments.Add(jsonData);
+                            string blobContent = Encoding.UTF8.GetString(stream.ToArray());
 
-//                                 await blobClient.DeleteAsync();
-//                             }
-//                         }
-//                     }
-//                     catch (Exception ex)
-//                     {
-//                         log.LogInformation($"There was an issue: {ex.Message} and {ex.StackTrace}");
-//                     }
+                            DataProcessingResponse jsonData = JsonConvert.DeserializeObject<DataProcessingResponse>(blobContent);
 
-//                 }
-//                 finalOutput = shipmentDataTransformation.RouteJsonData(allShipments);
+                            List<string> outputCsv = shipmentDataTransformation.TransformJsonToCsv(jsonData);
 
-//             }
-//             catch (Exception ex)
-//             {
-//                 log.LogInformation($"There was an issue: {ex.Message} and {ex.StackTrace}");
-//             }
-//         }
-//     }
-// }
+                            outputBlobName = $"transformed-shipment-csv/{blobDirectoryLoc}/{outputCsv[0]}.txt";
+
+                            blobStorageService.AppendContentToBlob(blobContainerClient2, outputBlobName, outputCsv[1]);
+
+                            await blobClient.DeleteAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        log.LogInformation($"There was an issue: {ex.Message} and {ex.StackTrace}");
+                    }
+                }
+
+                var fullyQualifiedNamespace = configuration["servicebus_fullyqualified_namespace"];//"servicebus1234512345.servicebus.windows.net"; // servicebus1234512345.servicebus.windows.net
+
+                var topicName = Globals.SB_TOPIC; // https://saazdevsea01.blob.core.windows.net/clientstorageaccount
+
+                var topicSubsName = Globals.SB_SUBSCRIPTION;
+
+                var messageBody = $"Hello, Service Bus!";
+
+                var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
+
+                var client = new ServiceBusClient(fullyQualifiedNamespace, new ManagedIdentityCredential());
+
+                var sender = client.CreateSender($"{topicName}/{topicSubsName}");
+
+                ServiceBusMessage messages = new(Encoding.UTF8.GetBytes($"The message is sent successfully"))
+                {
+                    Subject = "outbound_subs"
+                };
+
+                await sender.SendMessageAsync(messages);
+
+            }
+            catch (Exception ex)
+            {
+                log.LogInformation($"There was an issue: {ex.Message} and {ex.StackTrace}");
+            }
+        }
+    }
+}

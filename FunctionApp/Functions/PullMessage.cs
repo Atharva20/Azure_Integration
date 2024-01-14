@@ -10,6 +10,7 @@
 // using Microsoft.WindowsAzure.Storage.Blob;
 // using Azure.Core;
 // using System.Collections.Generic;
+// using AzureAutomation.Transformations;
 
 // namespace AzureAutomation.Functions
 // {
