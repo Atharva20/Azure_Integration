@@ -31,10 +31,47 @@ variable "account_replication_type" {
 }
 
 variable "servicebus_ttl" {
-  type    = string
-  default = "P7D"
+  description = "The life of message in service bus queue or topic if not received by any subscription."
+  type        = string
+  default     = "P7D"
 }
 
 variable "alert_email" {
-  type = string
+  description = "The mail-id where the alerts will be delivered."
+  type        = string
+}
+
+variable "os_type" {
+  description = "The operating system, windows/linux etc. on which our asp plan should be deployed."
+  type        = string
+}
+
+variable "sku_servicebus" {
+  description = "The pricing tier in which we want to deploy the servicebus namespace."
+  type        = string
+}
+
+variable "sku_name_func" {
+  description = "The pricing tier in which we want to deploy our function app service plan."
+  type        = string
+}
+
+variable "sku_name_logic" {
+  description = "The pricing tier in which we want to deploy our logic app service plan."
+  type        = string
+}
+
+variable "storage_access_role_defination" {
+  description = "The managed identity role to be assigned to the principal id over the scope(storage account) provided."
+  type        = string
+}
+
+variable "servicebus_access_role_defination" {
+  description = "The managed identity role to be assigned to the principal id over the scope(servicebus) provided."
+  type        = string
+}
+
+variable "container_access_type" {
+  description = "The contianer access such public/private etc. should be specified."
+  type        = string
 }
