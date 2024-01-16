@@ -36,7 +36,7 @@
 //             ILogger log)
 //         {
 //             log.LogInformation("C# HTTP trigger function processed a request.");
-            
+
 //             string outputBlobName = string.Empty;
 
 //             List<DataProcessingResponse> allShipments = new();
@@ -50,7 +50,7 @@
 //             BlobContainerClient blobContainerClient = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientstorageaccountname");
 
 //             BlobContainerClient blobContainerClient2 = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientoutputaccountname");
-            
+
 //             var allShipmentDatajsons = blobContainerClient.GetBlobsAsync(); //AsyncPageable<BlobItem>
 
 //             string blobDirectoryLoc = $"{DateTime.Now:yyyy/MM/dd/HH/mm}";

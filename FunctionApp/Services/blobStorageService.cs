@@ -35,14 +35,14 @@ namespace AzureAutomation.Interfaces.Services
             return content;
         }
 
-        public async Task UploadBlobContent(BlobClient blobClient, string blobContent)
-        {
-            byte[] blobContentBytes = Encoding.UTF8.GetBytes(blobContent);
-            using (MemoryStream stream = new(blobContentBytes))
-            {
-                await blobClient.UploadAsync(stream);
-            }
-        }
+        // public async Task UploadBlobContent(BlobClient blobClient, string blobContent)
+        // {
+        //     byte[] blobContentBytes = Encoding.UTF8.GetBytes(blobContent);
+        //     using (MemoryStream stream = new(blobContentBytes))
+        //     {
+        //         await blobClient.UploadAsync(stream);
+        //     }
+        // }
 
         public async Task<List<string>> AppendBlobDataToList(BlobContainerClient blobContainerClient)
         {
@@ -65,24 +65,15 @@ namespace AzureAutomation.Interfaces.Services
             return blobDataList;
         }
 
-        public void UploadDataToBLob(BlobClient blobClient, string content)
-        {
-            // blobContainerClient.CreateIfNotExistsAsync(PublicAccessType.BlobContainer);
-            // // Get a reference to the blob
-            // BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
-            blobClient.UploadAsync(content, new BlobHttpHeaders { ContentType = "text/plain" });
-        }
-
-        public async void AppendContentToBlob(BlobContainerClient blobContainerClient, string blobName, string blobData)
+        public async void AppendContentToBlob(BlobContainerClient blobContainerClient, string blobName, string content)
         {
             AppendBlobClient appendBlobClient = blobContainerClient.GetAppendBlobClient(blobName);
             await appendBlobClient.CreateIfNotExistsAsync();
-            byte[] dataBytes = System.Text.Encoding.UTF8.GetBytes(blobData);
+            byte[] dataBytes = System.Text.Encoding.UTF8.GetBytes(content);
             using (MemoryStream stream = new(dataBytes))
             {
                 await appendBlobClient.AppendBlockAsync(stream);
             }
         }
-
     }
 }

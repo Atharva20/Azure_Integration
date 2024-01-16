@@ -2,28 +2,28 @@ namespace AzureAutomation.Interfaces.Services
 {
     using System.Text;
     using Azure.Messaging.ServiceBus;
+    using Azure.Identity;
 
     public class ServicebusService : IServiceBusService
     {
-        public ServiceBusClient GetIntegrationServiceBusClient(string serviceBusConnection)
+        public ServiceBusClient ConnectToTargetServiceBusUsingManagedIdentity(string fullyQualifiedNamespace)
         {
-            return new ServiceBusClient("");
+            return new ServiceBusClient(fullyQualifiedNamespace, new ManagedIdentityCredential());
         }
 
-        public ServiceBusSender GetIntegrationServiceBusSender(ServiceBusClient serviceBusClient, string serviceBusTopicName)
+        public ServiceBusSender GetServiceBusSender(ServiceBusClient serviceBusClient, string serviceBusTopicName)
         {
             return serviceBusClient.CreateSender(serviceBusTopicName);
         }
 
-        public void SendOutputLocToLa(ServiceBusSender serviceBusSender, string topicContent, string subsLabel, string sessiosnID, string clientTrackingID)
+        public async void SendMsgToTopicSubs(ServiceBusSender serviceBusSender, string label, string topicContent)
         {
             ServiceBusMessage serviceBusMessage = new(topicContent)
             {
                 ContentType = "application/json",
-                SessionId = sessiosnID
+                Subject = label
             };
-            serviceBusMessage.ApplicationProperties["x-ms-client-tracking-id"] = clientTrackingID;
-            serviceBusSender.SendMessageAsync(serviceBusMessage);
+            await serviceBusSender.SendMessageAsync(serviceBusMessage);
         }
     }
 }

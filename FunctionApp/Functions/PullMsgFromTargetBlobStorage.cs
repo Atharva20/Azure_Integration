@@ -12,58 +12,56 @@ namespace AzureAutomation.Functions
     using System.IO;
     using AzureAutomation.Models;
     using Newtonsoft.Json;
-    using Azure;
-    using Azure.Storage.Blobs.Models;
     using AzureAutomation.Transformation;
     using AzureIntegration.Globals;
-    using Azure.Messaging.ServiceBus;
-    using Azure.Identity;
-
 
     public class PullMsgFromTargetBlobStorage
     {
         private readonly IConfiguration configuration;
         private readonly IBlobStorageService blobStorageService;
-        public PullMsgFromTargetBlobStorage(IConfiguration configuration, IBlobStorageService blobStorageService)
+        private readonly IServiceBusService serviceBusService;
+        public PullMsgFromTargetBlobStorage(IConfiguration configuration, IBlobStorageService blobStorageService, IServiceBusService serviceBusService)
         {
             this.configuration = configuration;
             this.blobStorageService = blobStorageService;
+            this.serviceBusService = serviceBusService;
         }
 
+        /// <summary>
+        /// The Function extracts every 15 mins to read the blobs in the client location, transform and then load the output in client location.
+        /// </summary>
+        /// <param name="log">logs the status of every step.</param>
+        /// <returns></returns>
         [FunctionName("PullMsgFromTargetBlobStorage")]
-        public async Task Run([TimerTrigger("0 */15 * * * *")] TimerInfo myTimer, ILogger log)
+        public async Task Run([TimerTrigger("0 */15 * * * *")] ILogger log)
         {
             try
             {
                 log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
-                string outputBlobName = string.Empty;
-
-                BlobContainerClient blobContainerClient = null;
-
-                BlobContainerClient blobContainerClient2 = null;
+                string fullyQualifiedNamespace = configuration["servicebus_fullyqualified_namespace"];
 
                 BlobServiceClient serviceClient = null;
 
-                ShipmentDataTransformation shipmentDataTransformation = new(this.blobStorageService);
+                ShipmentDataTransformation shipmentDataTransformation = new();
 
                 string blobServiceEndpoint = configuration["client_storage_account_url"];
 
                 serviceClient = blobStorageService.ConnectToTargetStorageAccountUsingManagedIdentity(blobServiceEndpoint);
 
-                blobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "inboundshipmetdata");
+                BlobContainerClient inboundBlobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "inboundshipmetdata");
 
-                blobContainerClient2 = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "outboundshipmetdata");
+                BlobContainerClient outboundBlobContainerClient = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "outboundshipmetdata");
 
-                string blobDirectoryLoc = $"{DateTime.Now:yyyy/MM/dd/HH/mm}";
+                string blobDirectoryLoc = $"transformed-shipment-csv/{DateTime.Now:yyyy/MM/dd/HH/mm}";
 
-                var allShipmentDatajsons = blobContainerClient.GetBlobsAsync(); //AsyncPageable<BlobItem>
+                var allShipmentDatajsons = inboundBlobContainerClient.GetBlobsAsync(); //AsyncPageable<BlobItem>
 
                 await foreach (var shipmentData in allShipmentDatajsons)
                 {
                     try
                     {
-                        BlobClient blobClient = blobContainerClient.GetBlobClient(shipmentData.Name);
+                        BlobClient blobClient = inboundBlobContainerClient.GetBlobClient(shipmentData.Name);
 
                         using (MemoryStream stream = new())
                         {
@@ -75,9 +73,9 @@ namespace AzureAutomation.Functions
 
                             List<string> outputCsv = shipmentDataTransformation.TransformJsonToCsv(jsonData);
 
-                            outputBlobName = $"transformed-shipment-csv/{blobDirectoryLoc}/{outputCsv[0]}.txt";
+                            string outputBlobName = $"{blobDirectoryLoc}/{outputCsv[0]}.txt";
 
-                            blobStorageService.AppendContentToBlob(blobContainerClient2, outputBlobName, outputCsv[1]);
+                            blobStorageService.AppendContentToBlob(outboundBlobContainerClient, outputBlobName, outputCsv[1]);
 
                             await blobClient.DeleteAsync();
                         }
@@ -88,26 +86,11 @@ namespace AzureAutomation.Functions
                     }
                 }
 
-                var fullyQualifiedNamespace = configuration["servicebus_fullyqualified_namespace"];//"servicebus1234512345.servicebus.windows.net"; // servicebus1234512345.servicebus.windows.net
+                var client = serviceBusService.ConnectToTargetServiceBusUsingManagedIdentity(fullyQualifiedNamespace);
 
-                var topicName = Globals.SB_TOPIC; // https://saazdevsea01.blob.core.windows.net/clientstorageaccount
+                var abcdef = serviceBusService.GetServiceBusSender(client, $"{Globals.SB_TOPIC}");
 
-                var topicSubsName = Globals.SB_SUBSCRIPTION;
-
-                var messageBody = $"Hello, Service Bus!";
-
-                var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
-
-                var client = new ServiceBusClient(fullyQualifiedNamespace, new ManagedIdentityCredential());
-
-                var sender = client.CreateSender($"{topicName}/{topicSubsName}");
-
-                ServiceBusMessage messages = new(Encoding.UTF8.GetBytes($"The message is sent successfully"))
-                {
-                    Subject = "outbound_subs"
-                };
-
-                await sender.SendMessageAsync(messages);
+                serviceBusService.SendMsgToTopicSubs(abcdef, "outbound_subs", blobDirectoryLoc);
 
             }
             catch (Exception ex)

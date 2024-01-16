@@ -11,8 +11,8 @@ namespace AzureAutomation.Functions
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddTransient<IBlobStorageService,BlobStorageService>();
-            builder.Services.AddTransient<IServiceBusService,ServicebusService>();
+            builder.Services.AddTransient<IBlobStorageService, BlobStorageService>();
+            builder.Services.AddTransient<IServiceBusService, ServicebusService>();
         }
     }
 }

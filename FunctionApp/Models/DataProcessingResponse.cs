@@ -3,6 +3,9 @@ namespace AzureAutomation.Models
     using Newtonsoft.Json;
     using System.Collections.Generic;
 
+    /// <summary>
+    /// Extracting the ItemDefination from the json.
+    /// </summary>
     public class ItemDefination
     {
         [JsonProperty("Whpk-Qty")]
@@ -18,12 +21,18 @@ namespace AzureAutomation.Models
         public int InvoiceCost { get; set; }
     }
 
+    /// <summary>
+    /// Extracting the ProductDetail from the json.
+    /// </summary>
     public class ProductDetail
     {
         public string ProductID { get; set; }
         public ItemDefination ItemDefination { get; set; }
     }
 
+    /// <summary>
+    /// Extracting the Stop from the json.
+    /// </summary>
     public class Stop
     {
         public string ShipmentSeq { get; set; }
@@ -31,12 +40,17 @@ namespace AzureAutomation.Models
         public string ShipmentCost { get; set; }
     }
 
+    /// <summary>
+    /// Extracting the Shipment from the json.
+    /// </summary>
     public class Shipment
     {
         public string ShipmentID { get; set; }
         public List<Stop> Stop { get; set; }
     }
-
+    /// <summary>
+    /// Extracting the OriginalOrder from the json.
+    /// </summary>
     public class OriginalOrder
     {
         public string TotalNumOfShipments { get; set; }
@@ -46,12 +60,18 @@ namespace AzureAutomation.Models
         public Shipment Shipment { get; set; }
     }
 
+    /// <summary>
+    /// Extracting the ContextInformation from the json.
+    /// </summary>
     public class ContextInformation
     {
         public string Message { get; set; }
         public string OriginFacilityID { get; set; }
     }
 
+    /// <summary>
+    /// Deserialises the input json to classes.
+    /// </summary>
     public class DataProcessingResponse
     {
         public ContextInformation ContextInformation { get; set; }
