@@ -1,0 +1,36 @@
+{
+    "managedApiConnections": {},
+    "serviceProviderConnections": {
+      "serviceBus": {
+        "parameterValues": {
+          "connectionString": "@appsetting('serviceBus_connectionString')"
+        },
+        "parameterSetName": "connectionString",
+        "serviceProvider": {
+          "id": "/serviceProviders/serviceBus"
+        },
+        "displayName": "service_bus_connection"
+      },
+      "AzureBlob": {
+        "parameterValues": {
+          "connectionString": "@appsetting('AzureBlob_connectionString')"
+        },
+        "parameterSetName": "connectionString",
+        "serviceProvider": {
+          "id": "/serviceProviders/AzureBlob"
+        },
+        "displayName": "storage-account-connection-string"
+      },
+      "eventHub": {
+        "parameterValues": {
+          "connectionString": "@appsetting('eventHub_connectionString')"
+        },
+        "parameterSetName": "connectionString",
+        "serviceProvider": {
+          "id": "/serviceProviders/eventHub"
+        },
+        "displayName": "event-hub-connectionstring"
+      }
+    }
+  }
+  

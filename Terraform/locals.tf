@@ -16,7 +16,7 @@ locals {
   functionapp_storage_account_name = format("fasa%sfa%s%s%s", "az", var.env, "sea", var.instance)
 
   # Logic Name
-  logic_name                  = format("la-%s-%s-%s-%s", "azureintegration", var.env, "sea", var.instance)
+  logic_name                 = format("la-%s-%s-%s-%s", "azureintegration", var.env, "sea", var.instance)
   logic_storage_account_name = format("lasa%sfa%s%s%s", "az", var.env, "sea", var.instance)
 
   # Service Bus

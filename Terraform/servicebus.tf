@@ -1,13 +1,3 @@
-# resource "azurerm_servicebus_queue" "sb-qa"{
-#   count                    = var.deploy_tier ? 1 : 0
-#   name = "asd"
-#   namespace_id = ""
-
-#   default_message_ttl = ""
-#   dead_lettering_on_message_expiration = true
-#   enable_partitioning = false
-# }
-
 resource "azurerm_servicebus_namespace" "servicebus_namespace" {
   count               = var.deploy_tier ? 1 : 0
   name                = local.servicebus_namespace
@@ -15,6 +5,16 @@ resource "azurerm_servicebus_namespace" "servicebus_namespace" {
   resource_group_name = azurerm_resource_group.rg_dev[0].name
   sku                 = "Standard"
 }
+
+# resource "azurerm_servicebus_queue" "sb-qa"{
+#   count                    = var.deploy_tier ? 1 : 0
+#   name = "outbound-queue"
+#   namespace_id = azurerm_servicebus_namespace.servicebus_namespace[0].id
+
+#   default_message_ttl = var.servicebus_ttl
+#   dead_lettering_on_message_expiration = true
+#   enable_partitioning = false
+# }
 
 resource "azurerm_servicebus_topic" "sbt-azureint-outbound" {
   count        = var.deploy_tier ? 1 : 0

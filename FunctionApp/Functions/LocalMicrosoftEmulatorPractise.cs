@@ -17,20 +17,20 @@
 
 // namespace AzureAutomation.Functions
 // {
-//     public class Example
+//     public class LocalMicrosoftEmulatorPractise
 //     {
 //         //private readonly IConfiguration configuration;
 //         private readonly IBlobStorageService blobStorageService;
 //         private readonly IServiceBusService serviceBusService;
 
 
-//         public Example(IBlobStorageService _blobStorageService, IServiceBusService _serviceBusService)
+//         public LocalMicrosoftEmulatorPractise(IBlobStorageService _blobStorageService, IServiceBusService _serviceBusService)
 //         {
 //             this.blobStorageService = _blobStorageService;
 //             this.serviceBusService = _serviceBusService;
 //         }
 
-//         [FunctionName("exampleseaaz01")]
+//         [FunctionName("LocalMicrosoftEmulatorPractise")]
 //         public async Task<IActionResult> Run(
 //             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
 //             ILogger log)

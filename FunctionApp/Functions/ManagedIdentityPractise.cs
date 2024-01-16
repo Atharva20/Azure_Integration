@@ -16,18 +16,18 @@
 
 // namespace Company.Function
 // {
-//     public class HttpTrigger1
+//     public class ManagedIdentityPractise
 //     {
 
 //         private readonly IConfiguration configuration;
 //         private readonly IBlobStorageService blobStorageService;
-//         public HttpTrigger1(IConfiguration configuration, IBlobStorageService blobStorageService)
+//         public ManagedIdentityPractise(IConfiguration configuration, IBlobStorageService blobStorageService)
 //         {
 //             this.configuration = configuration;
 //             this.blobStorageService = blobStorageService;
 //         }
 
-//         [FunctionName("HttpTrigger1")]
+//         [FunctionName("ManagedIdentityPractise")]
 //         public async Task<string> Run(
 //             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
 //             ILogger log)

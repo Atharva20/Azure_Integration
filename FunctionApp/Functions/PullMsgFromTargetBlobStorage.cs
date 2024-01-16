@@ -20,11 +20,11 @@ namespace AzureAutomation.Functions
     using Azure.Identity;
 
 
-    public class PullMsgFromClinet
+    public class PullMsgFromTargetBlobStorage
     {
         private readonly IConfiguration configuration;
         private readonly IBlobStorageService blobStorageService;
-        public PullMsgFromClinet(IConfiguration configuration, IBlobStorageService blobStorageService)
+        public PullMsgFromTargetBlobStorage(IConfiguration configuration, IBlobStorageService blobStorageService)
         {
             this.configuration = configuration;
             this.blobStorageService = blobStorageService;

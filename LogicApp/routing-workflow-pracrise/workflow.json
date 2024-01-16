@@ -1,0 +1,292 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Parse_the_Outbound_Shipment_Location": {
+                "type": "ParseJson",
+                "inputs": {
+                    "content": "@triggerOutputs()",
+                    "schema": {
+                        "properties": {
+                            "outbound_shipment_location": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "runAfter": {
+                    "Initialize_variable": [
+                        "SUCCEEDED"
+                    ]
+                }
+            },
+            "Send_event_details_for_each_DC": {
+                "type": "Scope",
+                "actions": {
+                    "If_Files_Are_Present": {
+                        "type": "If",
+                        "expression": {
+                            "and": [
+                                {
+                                    "greater": [
+                                        "@length(body('List_of_all_Outbound_Shipments')?['blobs'])",
+                                        0
+                                    ]
+                                }
+                            ]
+                        },
+                        "actions": {
+                            "Foreach_Outbound_Blob": {
+                                "type": "Foreach",
+                                "foreach": "@body('List_of_all_Outbound_Shipments')?['blobs']",
+                                "actions": {
+                                    "Read_blob_content": {
+                                        "type": "ServiceProvider",
+                                        "inputs": {
+                                            "parameters": {
+                                                "containerName": "outboundshipmetdata",
+                                                "blobName": "@items('Foreach_Outbound_Blob')?['name']"
+                                            },
+                                            "serviceProviderConfiguration": {
+                                                "connectionName": "AzureBlob",
+                                                "operationId": "readBlob",
+                                                "serviceProviderId": "/serviceProviders/AzureBlob"
+                                            }
+                                        },
+                                        "runAfter": {
+                                            "Append_to_list_of_all_outbound_shipments": [
+                                                "SUCCEEDED"
+                                            ]
+                                        }
+                                    },
+                                    "Send_Event_for_outbound_shipment": {
+                                        "type": "ServiceProvider",
+                                        "inputs": {
+                                            "parameters": {
+                                                "eventHubName": "eh-outbound-shipments",
+                                                "eventData": {
+                                                    "contentData": "@variables('list_of_all_outbound_shipments')"
+                                                }
+                                            },
+                                            "serviceProviderConfiguration": {
+                                                "connectionName": "eventHub",
+                                                "operationId": "sendEvent",
+                                                "serviceProviderId": "/serviceProviders/eventHub"
+                                            }
+                                        },
+                                        "runAfter": {
+                                            "Read_blob_content": [
+                                                "SUCCEEDED"
+                                            ]
+                                        }
+                                    },
+                                    "Append_to_list_of_all_outbound_shipments": {
+                                        "type": "AppendToArrayVariable",
+                                        "inputs": {
+                                            "name": "list_of_all_outbound_shipments",
+                                            "value": "@items('Foreach_Outbound_Blob')?['name']"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "else": {
+                            "actions": {
+                                "Empty_Directory": {
+                                    "type": "Terminate",
+                                    "inputs": {
+                                        "runStatus": "Failed",
+                                        "runError": {
+                                            "code": "FileError0001",
+                                            "message": "Could not locate any files in the provided location."
+                                        }
+                                    },
+                                    "runAfter": {
+                                        "Renew_lock": [
+                                            "SUCCEEDED"
+                                        ]
+                                    }
+                                },
+                                "Renew_lock": {
+                                    "type": "ServiceProvider",
+                                    "inputs": {
+                                        "parameters": {
+                                            "messageId": "@triggerBody()?['messageId']"
+                                        },
+                                        "serviceProviderConfiguration": {
+                                            "connectionName": "serviceBus",
+                                            "operationId": "renewLockMessage",
+                                            "serviceProviderId": "/serviceProviders/serviceBus"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "runAfter": {
+                            "List_all_the_blob_directories_using_path": [
+                                "SUCCEEDED"
+                            ]
+                        }
+                    },
+                    "List_all_the_blob_directories_using_path": {
+                        "type": "ServiceProvider",
+                        "inputs": {
+                            "parameters": {
+                                "containerName": "outboundshipmetdata",
+                                "blobNamePrefix": "@body('Parse_the_Outbound_Shipment_Location')?['outbound_shipment_location']"
+                            },
+                            "serviceProviderConfiguration": {
+                                "connectionName": "AzureBlob",
+                                "operationId": "listBlobDirectories",
+                                "serviceProviderId": "/serviceProviders/AzureBlob"
+                            }
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Parse_the_Outbound_Shipment_Location": [
+                        "SUCCEEDED"
+                    ]
+                }
+            },
+            "Initialize_variable": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "list_of_all_outbound_shipments",
+                            "type": "array"
+                        }
+                    ]
+                },
+                "runAfter": {}
+            },
+            "Catch": {
+                "type": "Scope",
+                "actions": {
+                    "Filter_array": {
+                        "type": "Query",
+                        "inputs": {
+                            "from": "@result('Send_event_details_for_each_DC')",
+                            "where": "@equals(item()['status'],'Failed')"
+                        }
+                    },
+                    "Dead-letter_the_message_in_the_topic": {
+                        "type": "ServiceProvider",
+                        "inputs": {
+                            "parameters": {
+                                "messageId": "@triggerBody()?['messageId']"
+                            },
+                            "serviceProviderConfiguration": {
+                                "connectionName": "serviceBus",
+                                "operationId": "deadLetterMessage",
+                                "serviceProviderId": "/serviceProviders/serviceBus"
+                            }
+                        },
+                        "runAfter": {
+                            "Select_the_error_block": [
+                                "SUCCEEDED"
+                            ]
+                        }
+                    },
+                    "Select_the_error_block": {
+                        "type": "Select",
+                        "inputs": {
+                            "from": "@body('Filter_array')",
+                            "select": {
+                                "action": "@{item()['name']}"
+                            }
+                        },
+                        "runAfter": {
+                            "Filter_array": [
+                                "SUCCEEDED"
+                            ]
+                        }
+                    },
+                    "Switch": {
+                        "type": "Switch",
+                        "expression": "@body('Select_the_error_block')[0]['action']",
+                        "default": {
+                            "actions": {
+                                "Terminate_2": {
+                                    "type": "Terminate",
+                                    "inputs": {
+                                        "runStatus": "Failed",
+                                        "runError": {
+                                            "code": "UnkonwnError001",
+                                            "message": "The workflow failed due to an unknown error"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "cases": {
+                            "Failed_to_connect_staorage_account": {
+                                "actions": {
+                                    "Storage_Account_Failed": {
+                                        "type": "Terminate",
+                                        "inputs": {
+                                            "runStatus": "Failed",
+                                            "runError": {
+                                                "code": "CONNECTIONERROR001",
+                                                "message": "Failed to coonect to storage account"
+                                            }
+                                        }
+                                    }
+                                },
+                                "case": "List_all_the_blob_directories_using_path"
+                            },
+                            "Failed_to_send_event": {
+                                "actions": {
+                                    "Event_Hub_Failed": {
+                                        "type": "Terminate",
+                                        "inputs": {
+                                            "runStatus": "Failed",
+                                            "runError": {
+                                                "code": "CONNECTIONERROR004",
+                                                "message": "Failed to connect to event hub"
+                                            }
+                                        }
+                                    }
+                                },
+                                "case": "Send_Event_for_outbound_shipment"
+                            }
+                        },
+                        "runAfter": {
+                            "Dead-letter_the_message_in_the_topic": [
+                                "SUCCEEDED"
+                            ]
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Send_event_details_for_each_DC": [
+                        "FAILED"
+                    ]
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "When_messages_are_available_in_a_topic_subscription_(peek-lock)": {
+                "type": "ServiceProvider",
+                "inputs": {
+                    "parameters": {
+                        "topicName": "sbt-azureint-outbound",
+                        "subscriptionName": "outbound-routing",
+                        "isSessionsEnabled": false
+                    },
+                    "serviceProviderConfiguration": {
+                        "connectionName": "serviceBus",
+                        "operationId": "peekLockTopicMessages",
+                        "serviceProviderId": "/serviceProviders/serviceBus"
+                    }
+                },
+                "splitOn": "@triggerOutputs()?['body']"
+            }
+        }
+    },
+    "kind": "Stateful"
+}

@@ -1,0 +1,10 @@
+{
+  "outbound-subscription-name": {
+      "type": "String",
+      "value": "outbound-routing"
+  },
+  "outbound-topic-name": {
+      "type": "String",
+      "value": "sbt-azureint-outbound"
+  }
+}

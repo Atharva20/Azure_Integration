@@ -1,0 +1,371 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Initialize_list_of_all_outbound_shipments": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "list_of_all_outbound_shipments",
+                            "type": "array"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Initialize_messageState": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "messageState",
+                            "type": "string",
+                            "value": "Processed"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Initialize_list_of_all_outbound_shipments": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Parse_the_Outbound_Shipment_Location": {
+                "inputs": {
+                    "content": "@triggerBody()",
+                    "schema": {
+                        "properties": {
+                            "outbound_shipment_location": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "runAfter": {
+                    "Initialize_messageState": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "ParseJson"
+            },
+            "Send_event_details_for_all_Outbound_Shipments": {
+                "actions": {
+                    "Catch": {
+                        "actions": {
+                            "Set_messageState_to_Error": {
+                                "inputs": {
+                                    "name": "messageState",
+                                    "value": "Error"
+                                },
+                                "type": "SetVariable"
+                            }
+                        },
+                        "runAfter": {
+                            "Try": [
+                                "FAILED",
+                                "TIMEDOUT"
+                            ]
+                        },
+                        "type": "Scope"
+                    },
+                    "List_of_all_Outbound_Shipments": {
+                        "inputs": {
+                            "parameters": {
+                                "blobNamePrefix": "@body('Parse_the_Outbound_Shipment_Location')?['outbound_shipment_location']",
+                                "containerName": "outboundshipmetdata"
+                            },
+                            "serviceProviderConfiguration": {
+                                "connectionName": "AzureBlob",
+                                "operationId": "listBlobs",
+                                "serviceProviderId": "/serviceProviders/AzureBlob"
+                            }
+                        },
+                        "type": "ServiceProvider"
+                    },
+                    "Try": {
+                        "actions": {
+                            "Condition": {
+                                "actions": {
+                                    "Compose_the_outbound_shipment_details": {
+                                        "inputs": {
+                                            "numberofshipments": "@length(body('List_of_all_Outbound_Shipments')?['blobs'])",
+                                            "outboundshipments": "@variables('list_of_all_outbound_shipments')"
+                                        },
+                                        "runAfter": {
+                                            "Foreach_over_all_Outbound_Blobs": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "type": "Compose"
+                                    },
+                                    "Foreach_over_all_Outbound_Blobs": {
+                                        "actions": {
+                                            "Append_to_array_variable": {
+                                                "inputs": {
+                                                    "name": "list_of_all_outbound_shipments",
+                                                    "value": "@items('Foreach_over_all_Outbound_Blobs')?['name']"
+                                                },
+                                                "type": "AppendToArrayVariable"
+                                            },
+                                            "Set_messageState_as_Processed": {
+                                                "inputs": {
+                                                    "name": "messageState",
+                                                    "value": "Processed"
+                                                },
+                                                "runAfter": {
+                                                    "Append_to_array_variable": [
+                                                        "SUCCEEDED"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            }
+                                        },
+                                        "foreach": "@body('List_of_all_Outbound_Shipments')?['blobs']",
+                                        "type": "foreach"
+                                    },
+                                    "Send_event_to_Outbound_Shipment": {
+                                        "inputs": {
+                                            "body": {
+                                                "ContentData": "@{base64(outputs('Compose_the_outbound_shipment_details'))}"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "referenceName": "eventhubs"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/@{encodeURIComponent('outbound-event')}/events"
+                                        },
+                                        "runAfter": {
+                                            "Compose_the_outbound_shipment_details": [
+                                                "SUCCEEDED"
+                                            ]
+                                        },
+                                        "type": "ApiConnection"
+                                    }
+                                },
+                                "else": {
+                                    "actions": {
+                                        "Complete_the_message_in_a_topic_subscription_copy": {
+                                            "inputs": {
+                                                "host": {
+                                                    "connection": {
+                                                        "referenceName": "servicebus"
+                                                    }
+                                                },
+                                                "method": "delete",
+                                                "path": "/@{encodeURIComponent(encodeURIComponent('sbt-azureint-outbound'))}/subscriptions/@{encodeURIComponent('outbound-routing')}/messages/complete",
+                                                "queries": {
+                                                    "lockToken": "@item()?['LockToken']",
+                                                    "sessionId": "",
+                                                    "subscriptionType": "Main"
+                                                }
+                                            },
+                                            "type": "ApiConnection"
+                                        },
+                                        "Terminate_for_Empty_List_of_Shipment": {
+                                            "inputs": {
+                                                "runError": {
+                                                    "code": "FileError001",
+                                                    "message": "The content was empty"
+                                                },
+                                                "runStatus": "Failed"
+                                            },
+                                            "runAfter": {
+                                                "Complete_the_message_in_a_topic_subscription_copy": [
+                                                    "SUCCEEDED"
+                                                ]
+                                            },
+                                            "type": "Terminate"
+                                        }
+                                    }
+                                },
+                                "expression": {
+                                    "and": [
+                                        {
+                                            "greater": [
+                                                "@length(body('List_of_all_Outbound_Shipments')?['blobs'])",
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "type": "If"
+                            }
+                        },
+                        "runAfter": {
+                            "List_of_all_Outbound_Shipments": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "type": "Scope"
+                    },
+                    "Until": {
+                        "actions": {
+                            "Switch": {
+                                "cases": {
+                                    "Abondon_the_the_message": {
+                                        "actions": {
+                                            "Dead-letter_the_message_in_a_topic_subscription": {
+                                                "inputs": {
+                                                    "host": {
+                                                        "connection": {
+                                                            "referenceName": "servicebus"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "path": "/@{encodeURIComponent(encodeURIComponent('sbt-azureint-outbound'))}/subscriptions/@{encodeURIComponent('outbound-routing')}/messages/deadletter",
+                                                    "queries": {
+                                                        "deadLetterErrorDescription": "",
+                                                        "deadLetterReason": "",
+                                                        "lockToken": "@item()?['LockToken']",
+                                                        "sessionId": ""
+                                                    }
+                                                },
+                                                "type": "ApiConnection"
+                                            },
+                                            "Set_messageState_to_Terminate": {
+                                                "inputs": {
+                                                    "name": "messageState",
+                                                    "value": "Terminate"
+                                                },
+                                                "runAfter": {
+                                                    "Dead-letter_the_message_in_a_topic_subscription": [
+                                                        "SUCCEEDED"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            }
+                                        },
+                                        "case": "Error"
+                                    },
+                                    "Complete_the_message": {
+                                        "actions": {
+                                            "Complete_the_message_in_a_topic_subscription": {
+                                                "inputs": {
+                                                    "host": {
+                                                        "connection": {
+                                                            "referenceName": "servicebus"
+                                                        }
+                                                    },
+                                                    "method": "delete",
+                                                    "path": "/@{encodeURIComponent(encodeURIComponent('sbt-azureint-outbound'))}/subscriptions/@{encodeURIComponent('outbound-routing')}/messages/complete",
+                                                    "queries": {
+                                                        "lockToken": "@item()?['LockToken']",
+                                                        "sessionId": "",
+                                                        "subscriptionType": "Main"
+                                                    }
+                                                },
+                                                "type": "ApiConnection"
+                                            },
+                                            "Set_messageState_to_Done": {
+                                                "inputs": {
+                                                    "name": "messageState",
+                                                    "value": "Done"
+                                                },
+                                                "runAfter": {
+                                                    "Complete_the_message_in_a_topic_subscription": [
+                                                        "SUCCEEDED"
+                                                    ]
+                                                },
+                                                "type": "SetVariable"
+                                            }
+                                        },
+                                        "case": "Processed"
+                                    },
+                                    "Renew_the_lock_on_the_message": {
+                                        "actions": {
+                                            "Renew_lock_on_the_message_in_a_topic_subscription": {
+                                                "inputs": {
+                                                    "host": {
+                                                        "connection": {
+                                                            "referenceName": "servicebus"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "path": "/@{encodeURIComponent(encodeURIComponent('sbt-azureint-outbound'))}/subscriptions/@{encodeURIComponent('outbound-routing')}/messages/renewlock",
+                                                    "queries": {
+                                                        "lockToken": "@item()?['LockToken']",
+                                                        "subscriptionType": "Main"
+                                                    }
+                                                },
+                                                "runAfter": {
+                                                    "Wait_half_the_default_lock_token_time": [
+                                                        "SUCCEEDED"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection"
+                                            },
+                                            "Wait_half_the_default_lock_token_time": {
+                                                "inputs": {
+                                                    "interval": {
+                                                        "count": 30,
+                                                        "unit": "Second"
+                                                    }
+                                                },
+                                                "type": "Wait"
+                                            }
+                                        },
+                                        "case": "Processing"
+                                    }
+                                },
+                                "default": {
+                                    "actions": {}
+                                },
+                                "expression": "@variables('messageState')",
+                                "type": "Switch"
+                            }
+                        },
+                        "expression": "@or(equals(variables('messageState'),'Done'),equals(variables('messageState'),'Terminate_for_Empty_List_of_Shipment'))",
+                        "limit": {
+                            "count": 60,
+                            "timeout": "PT1H"
+                        },
+                        "runAfter": {
+                            "List_of_all_Outbound_Shipments": [
+                                "SUCCEEDED"
+                            ]
+                        },
+                        "type": "Until"
+                    }
+                },
+                "runAfter": {
+                    "Parse_the_Outbound_Shipment_Location": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Scope"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "When_one_or_more_messages_arrive_in_a_topic_(peek-lock)": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "referenceName": "servicebus"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/@{encodeURIComponent(encodeURIComponent('sbt-azureint-outbound'))}/subscriptions/@{encodeURIComponent('outbound-routing')}/messages/batch/head/peek",
+                    "queries": {
+                        "maxMessageCount": 20,
+                        "sessionId": "Next Available",
+                        "subscriptionType": "Main"
+                    }
+                },
+                "recurrence": {
+                    "frequency": "Minute",
+                    "interval": 3,
+                    "timeZone": "India Standard Time"
+                },
+                "splitOn": "@triggerBody()",
+                "type": "ApiConnection"
+            }
+        }
+    },
+    "kind": "Stateful"
+}
