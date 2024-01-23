@@ -1,4 +1,4 @@
-namespace AzureAutomation.Interfaces.Services
+namespace AzureIntegration.Interfaces.Services
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,11 @@ namespace AzureAutomation.Interfaces.Services
     using System.IO;
     using System.Text;
     using Azure.Storage.Blobs.Specialized;
+    using Azure;
+    using System.Linq;
+    using System.Diagnostics.CodeAnalysis;
 
+    [ExcludeFromCodeCoverage]
     public class BlobStorageService : IBlobStorageService
     {
         public BlobServiceClient ConnectToTargetStorageAccountUsingManagedIdentity(string endpointUrl)
@@ -74,6 +78,27 @@ namespace AzureAutomation.Interfaces.Services
             {
                 await appendBlobClient.AppendBlockAsync(stream);
             }
+        }
+
+        public async Task<List<string>> GetAllBlobsContent(BlobContainerClient blobContainerClient)
+        {
+            List<string> allShipmentData = new List<string>();
+
+            var listOfAllBlobs = blobContainerClient.GetBlobsAsync();
+            await foreach (var currentBlob in listOfAllBlobs)
+            {
+                BlobClient blobClient = blobContainerClient.GetBlobClient(currentBlob.Name);
+                using (MemoryStream stream = new())
+                {
+                    await blobClient.DownloadToAsync(stream);
+                    string blobContent = Encoding.UTF8.GetString(stream.ToArray());
+                    allShipmentData.Add(blobContent);
+                    //await blobClient.DeleteAsync();
+                }
+            }
+
+
+            return allShipmentData;
         }
     }
 }

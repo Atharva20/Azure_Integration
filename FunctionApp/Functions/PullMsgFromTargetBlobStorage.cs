@@ -1,27 +1,33 @@
-namespace AzureAutomation.Functions
+namespace AzureIntegration.Functions
 {
     using System;
     using System.Text;
     using Microsoft.Azure.WebJobs;
     using Microsoft.Extensions.Logging;
-    using Azure.Storage.Blobs;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
-    using AzureAutomation.Interfaces;
     using System.Collections.Generic;
     using System.IO;
-    using AzureAutomation.Models;
     using Newtonsoft.Json;
-    using AzureAutomation.Transformation;
+    using Azure.Storage.Blobs;
+    using AzureIntegration.Interfaces;
+    using AzureIntegration.Models;
+    using AzureIntegration.Transformation;
     using AzureIntegration.Globals;
+    using Azure.Storage.Blobs.Models;
+    using Azure;
+    using Azure.Messaging.ServiceBus;
+    using AzureIntegration.Logger;
 
     public class PullMsgFromTargetBlobStorage
     {
+        private readonly ILoggerWrapper log;
         private readonly IConfiguration configuration;
         private readonly IBlobStorageService blobStorageService;
         private readonly IServiceBusService serviceBusService;
-        public PullMsgFromTargetBlobStorage(IConfiguration configuration, IBlobStorageService blobStorageService, IServiceBusService serviceBusService)
+        public PullMsgFromTargetBlobStorage(IConfiguration configuration, IBlobStorageService blobStorageService, IServiceBusService serviceBusService, ILoggerWrapper log)
         {
+            this.log = log;
             this.configuration = configuration;
             this.blobStorageService = blobStorageService;
             this.serviceBusService = serviceBusService;
@@ -30,72 +36,73 @@ namespace AzureAutomation.Functions
         /// <summary>
         /// The Function extracts every 15 mins to read the blobs in the client location, transform and then load the output in client location.
         /// </summary>
-        /// <param name="log">logs the status of every step.</param>
-        /// <returns></returns>
+        /// <param name="myTimer"></param>
         [FunctionName("PullMsgFromTargetBlobStorage")]
-        public async Task Run([TimerTrigger("0 */15 * * * *")] ILogger log)
+        public async Task Run([TimerTrigger("0 */15 * * * *")] TimerInfo myTimer)
         {
             try
             {
-                log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+                log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}.");
 
                 string fullyQualifiedNamespace = configuration["servicebus_fullyqualified_namespace"];
 
-                BlobServiceClient serviceClient = null;
+                List<string> allShipmetContent = new();
 
                 ShipmentDataTransformation shipmentDataTransformation = new();
 
+                int outputShipments = 0;
+
                 string blobServiceEndpoint = configuration["client_storage_account_url"];
 
-                serviceClient = blobStorageService.ConnectToTargetStorageAccountUsingManagedIdentity(blobServiceEndpoint);
+                BlobServiceClient blobServiceClient = blobStorageService.ConnectToTargetStorageAccountUsingManagedIdentity(blobServiceEndpoint);
 
-                BlobContainerClient inboundBlobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "inboundshipmetdata");
+                BlobContainerClient inboundBlobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(blobServiceClient, "inboundshipmetdata");
 
-                BlobContainerClient outboundBlobContainerClient = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "outboundshipmetdata");
+                BlobContainerClient outboundBlobContainerClient = this.blobStorageService.GetTargetBlobConatinerFromClientLocation(blobServiceClient, "outboundshipmetdata");
 
                 string blobDirectoryLoc = $"transformed-shipment-csv/{DateTime.Now:yyyy/MM/dd/HH/mm}";
 
-                var allShipmentDatajsons = inboundBlobContainerClient.GetBlobsAsync(); //AsyncPageable<BlobItem>
+                allShipmetContent = await blobStorageService.GetAllBlobsContent(inboundBlobContainerClient);
 
-                await foreach (var shipmentData in allShipmentDatajsons)
+                if (allShipmetContent.Count > 0)
                 {
-                    try
+                    foreach (var currentShipment in allShipmetContent)
                     {
-                        BlobClient blobClient = inboundBlobContainerClient.GetBlobClient(shipmentData.Name);
+                        DataProcessingResponse jsonData = JsonConvert.DeserializeObject<DataProcessingResponse>(currentShipment);
 
-                        using (MemoryStream stream = new())
-                        {
-                            await blobClient.DownloadToAsync(stream);
+                        OutputStrucutre outputCsv = shipmentDataTransformation.TransformJsonToCsv(jsonData);
 
-                            string blobContent = Encoding.UTF8.GetString(stream.ToArray());
+                        string outputBlobName = $"{blobDirectoryLoc}/{outputCsv.OriginFacilityID}.txt";
 
-                            DataProcessingResponse jsonData = JsonConvert.DeserializeObject<DataProcessingResponse>(blobContent);
+                        blobStorageService.AppendContentToBlob(outboundBlobContainerClient, outputBlobName, outputCsv.ResponseContent);
 
-                            List<string> outputCsv = shipmentDataTransformation.TransformJsonToCsv(jsonData);
+                        outputShipments++;
 
-                            string outputBlobName = $"{blobDirectoryLoc}/{outputCsv[0]}.txt";
-
-                            blobStorageService.AppendContentToBlob(outboundBlobContainerClient, outputBlobName, outputCsv[1]);
-
-                            await blobClient.DeleteAsync();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        log.LogInformation($"There was an issue: {ex.Message} and {ex.StackTrace}");
+                        log.LogInformation($"The currentShipment Data is successfully uploaded to the location.");
                     }
                 }
+                else
+                {
+                    log.LogWarning("There was no data for the current trigger.");
+                }
 
-                var client = serviceBusService.ConnectToTargetServiceBusUsingManagedIdentity(fullyQualifiedNamespace);
+                if (outputShipments > 0)
+                {
 
-                var abcdef = serviceBusService.GetServiceBusSender(client, $"{Globals.SB_TOPIC}");
+                    ServiceBusClient serviceBusClient = serviceBusService.ConnectToTargetServiceBusUsingManagedIdentity(fullyQualifiedNamespace);
 
-                serviceBusService.SendMsgToTopicSubs(abcdef, "outbound_subs", blobDirectoryLoc);
+                    ServiceBusSender serviceBusSender = serviceBusService.GetServiceBusSender(serviceBusClient, $"{Globals.SB_TOPIC}");
 
+                    serviceBusService.SendMsgToTopicSubs(serviceBusSender, "outbound_subs", blobDirectoryLoc);
+
+                    log.LogInformation($"The processed shipment Data location is successfully sent to the client.");
+
+                }
             }
             catch (Exception ex)
             {
-                log.LogInformation($"There was an issue: {ex.Message} and {ex.StackTrace}");
+                log.LogError($"There was an issue: {ex.Message} and {ex.StackTrace}");
+                throw;
             }
         }
     }

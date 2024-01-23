@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AzureAutomation.Models
+namespace AzureIntegration.Models
 {
     /// <summary>
     /// Provides the OutputStrucutre.
@@ -8,6 +8,6 @@ namespace AzureAutomation.Models
     public class OutputStrucutre
     {
         public string OriginFacilityID { get; set; }
-        public List<string> ResponseContent { get; set; }
+        public string ResponseContent { get; set; }
     }
 }

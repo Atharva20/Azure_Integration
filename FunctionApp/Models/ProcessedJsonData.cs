@@ -1,4 +1,4 @@
-namespace AzureAutomation.Models
+namespace AzureIntegration.Models
 {
     /// <summary>
     /// Iterating over the jsons productDetails data.
@@ -10,7 +10,6 @@ namespace AzureAutomation.Models
         public int InvoiceCost { get; set; }
         public string WhpkeCost { get; set; }
         public string WhpkQty { get; set; }
-        public string StoreNum { get; set; }
     }
 
     /// <summary>

@@ -1,9 +1,11 @@
-namespace AzureAutomation.Interfaces.Services
+namespace AzureIntegration.Interfaces.Services
 {
     using System.Text;
     using Azure.Messaging.ServiceBus;
     using Azure.Identity;
+    using System.Diagnostics.CodeAnalysis;
 
+    [ExcludeFromCodeCoverage]
     public class ServicebusService : IServiceBusService
     {
         public ServiceBusClient ConnectToTargetServiceBusUsingManagedIdentity(string fullyQualifiedNamespace)

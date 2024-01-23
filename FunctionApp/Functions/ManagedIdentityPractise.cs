@@ -4,7 +4,7 @@
 // using Microsoft.AspNetCore.Http;
 // using Microsoft.Extensions.Logging;
 // using Microsoft.Extensions.Configuration;
-// using AzureAutomation.Interfaces;
+// using AzureIntegration.Interfaces;
 // using Azure.Storage.Blobs;
 // using System.Collections.Generic;
 // using Azure.Messaging.ServiceBus;

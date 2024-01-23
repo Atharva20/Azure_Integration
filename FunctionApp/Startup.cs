@@ -1,11 +1,11 @@
-using AzureAutomation.Interfaces;
-using AzureAutomation.Interfaces.Services;
+using AzureIntegration.Interfaces;
+using AzureIntegration.Interfaces.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-[assembly: FunctionsStartup(typeof(AzureAutomation.Functions.Startup))]
+[assembly: FunctionsStartup(typeof(AzureIntegration.Functions.Startup))]
 
-namespace AzureAutomation.Functions
+namespace AzureIntegration.Functions
 {
     public class Startup : FunctionsStartup
     {

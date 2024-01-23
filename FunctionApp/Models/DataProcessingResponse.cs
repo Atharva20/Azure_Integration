@@ -1,4 +1,4 @@
-namespace AzureAutomation.Models
+namespace AzureIntegration.Models
 {
     using Newtonsoft.Json;
     using System.Collections.Generic;
@@ -13,9 +13,6 @@ namespace AzureAutomation.Models
 
         [JsonProperty("Whpk-Cost")]
         public string WhpkCost { get; set; }
-
-        [JsonProperty("Item-Cost")]
-        public string ItemCost { get; set; }
 
         [JsonProperty("Invoice-Cost")]
         public int InvoiceCost { get; set; }

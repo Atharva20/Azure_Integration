@@ -1,9 +1,11 @@
-namespace AzureAutomation.Interfaces
+namespace AzureIntegration.Interfaces
 {
     using System;
     using System.Threading.Tasks;
     using Azure.Storage.Blobs;
     using System.Collections.Generic;
+    using Azure;
+    using Azure.Storage.Blobs.Models;
 
     public interface IBlobStorageService
     {
@@ -36,5 +38,12 @@ namespace AzureAutomation.Interfaces
         /// <param name="blobName">The name of the blob where we need to append the data to.</param>
         /// <param name="content">The content to append to the client blob.</param>
         void AppendContentToBlob(BlobContainerClient blobContainerClient, string blobName, string content);
+
+        /// <summary>
+        /// Provides a List containing data from the blobs within specified container.
+        /// </summary>
+        /// <param name="blobContainerClient">client required to connect to the storage account.</param>
+        /// <returns></returns>
+        Task<List<string>> GetAllBlobsContent(BlobContainerClient blobContainerClient);
     }
 }

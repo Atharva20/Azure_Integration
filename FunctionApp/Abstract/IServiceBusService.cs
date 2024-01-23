@@ -1,4 +1,4 @@
-namespace AzureAutomation.Interfaces
+namespace AzureIntegration.Interfaces
 {
     using System;
     using System.Threading.Tasks;

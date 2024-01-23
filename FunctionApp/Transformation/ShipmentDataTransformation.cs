@@ -1,9 +1,9 @@
-namespace AzureAutomation.Transformation
+namespace AzureIntegration.Transformation
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using AzureAutomation.Models;
+    using AzureIntegration.Models;
 
     /// <summary>
     /// Converts the shipment jsons to csv format.
@@ -15,7 +15,7 @@ namespace AzureAutomation.Transformation
         /// </summary>
         /// <param name="jsonInput">json structure</param>
         /// <returns></returns>
-        public List<string> TransformJsonToCsv(DataProcessingResponse jsonInput)
+        public OutputStrucutre TransformJsonToCsv(DataProcessingResponse jsonInput)
         {
             List<string> uniqueProducts = new();
             List<string> transformedOutput = new();
@@ -78,7 +78,9 @@ namespace AzureAutomation.Transformation
                     transformedOutput.Add(detailData);
                 }
             }
-            return transformedOutput;
+            outputStrucutre.ResponseContent = string.Join(Environment.NewLine, transformedOutput.ToArray());
+            
+            return outputStrucutre;
         }
 
         /// <summary>
