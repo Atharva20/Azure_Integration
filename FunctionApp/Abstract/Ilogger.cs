@@ -1,6 +1,6 @@
 namespace AzureIntegration.Logger
 {
-    using System.Diagnostics.CodeAnalysis;
+    using AzureIntegration.Functions;
     using Microsoft.Extensions.Logging;
     public interface ILoggerWrapper
     {
@@ -9,7 +9,8 @@ namespace AzureIntegration.Logger
         void LogError(string message);
         // Add other logging methods if needed
     }
-    [ExcludeFromCodeCoverage]
+
+    // Implement a wrapper for ILogger<T>
     public class LoggerWrapper : ILoggerWrapper
     {
         private readonly ILogger _logger;
@@ -33,5 +34,6 @@ namespace AzureIntegration.Logger
         {
             _logger.LogError(message);
         }
+        // Implement other logging methods if needed
     }
 }
