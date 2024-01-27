@@ -1,20 +1,11 @@
 namespace AzureIntegration.UnitTestHelper
 {
-    using Xunit;
-    using System;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Logging;
-    using AzureIntegration.Interfaces;
-    using Moq;
-    using AzureIntegration.Functions;
-    using System.Threading.Tasks;
-    using Microsoft.Azure.WebJobs;
-    using Azure.Storage.Blobs;
-    using Azure;
-    using Azure.Storage.Blobs.Models;
     using System.Collections.Generic;
     using System.IO;
 
+    /// <summary>
+    /// Helps unit tests in generating results also in retireving test data.
+    /// </summary>
     public class UnitTestHelper
     {
         public static string GetShipmentData1()
@@ -29,6 +20,12 @@ namespace AzureIntegration.UnitTestHelper
             string localFilePath = @"./Data/SampleShipment2.txt";
             string shipmentData2 = File.ReadAllText(localFilePath);
             return shipmentData2;
+        }
+
+         public static IEnumerable<object[]> GetShipmentJsons()
+        {
+            yield return new object[] { GetShipmentData1() };
+            yield return new object[] { GetShipmentData2() };
         }
     }
 
