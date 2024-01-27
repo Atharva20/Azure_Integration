@@ -31,7 +31,7 @@ namespace AzureIntegration.Models
     public class SummationPerProductIDs
     {
         public int ProductIdInvcCostSummation { get; set; }
-        public string storeID { get; set; }
+        public string StoreID { get; set; }
     }
 
     /// <summary>

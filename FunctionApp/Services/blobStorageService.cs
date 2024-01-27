@@ -80,9 +80,10 @@ namespace AzureIntegration.Interfaces.Services
             }
         }
 
-        public async Task<List<string>> GetAllBlobsContent(BlobContainerClient blobContainerClient)
+        public async Task<List<Tuple<string, string>>> GetAllBlobsContent(BlobContainerClient blobContainerClient)
         {
-            List<string> allShipmentData = new List<string>();
+            
+            List<Tuple<string, string>> processedDataList = new();
 
             var listOfAllBlobs = blobContainerClient.GetBlobsAsync();
             await foreach (var currentBlob in listOfAllBlobs)
@@ -92,13 +93,12 @@ namespace AzureIntegration.Interfaces.Services
                 {
                     await blobClient.DownloadToAsync(stream);
                     string blobContent = Encoding.UTF8.GetString(stream.ToArray());
-                    allShipmentData.Add(blobContent);
+                    processedDataList.Add(new Tuple<string, string>(currentBlob.Name, blobContent));
+                    //allShipmentData.Add(currentBlob.Name,blobContent);
                     //await blobClient.DeleteAsync();
                 }
             }
-
-
-            return allShipmentData;
+            return processedDataList;
         }
     }
 }
