@@ -34,8 +34,8 @@ stages:
               command: 'init'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
               backendServiceArm: 'AzureIntegration'
-              backendAzureRmResourceGroupName: 'rgazdevsea01'
-              backendAzureRmStorageAccountName: 'saazdevsea01'
-              backendAzureRmContainerName: 'tfstateazdevsea01'
-              backendAzureRmKey: 'terraform.tfstate'
+              backendAzureRmResourceGroupName: '$(bckstrgrg)'
+              backendAzureRmStorageAccountName: '$(bckstrgstracc)'
+              backendAzureRmContainerName: '$(bckstrgctrnm'
+              backendAzureRmKey: '$(bckstrky)'
 
