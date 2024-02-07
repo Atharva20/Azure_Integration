@@ -10,19 +10,32 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  bckstrgrg: "rg-sco-tfstate-sea-01"
-  bckstrgstracc: "sascotfstatesea01"
-  bckstrgctrnm: "terraform"
+  bckstrgrg: "rgazdevsea01"
+  bckstrgstracc: "saazdevsea01"
+  bckstrgctrnm: "tfstateazdevsea01"
   bckstrky: "terraform.tfstate"
   anyTfChanges: false
 
-  - task: TerraformTaskV4@4
-    inputs:
-      provider: 'azurerm'
-      command: 'init'
-      workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
-      backendServiceArm: 'AzureIntegration'
-      backendAzureRmResourceGroupName: 'rgazdevsea01'
-      backendAzureRmStorageAccountName: 'saazdevsea01'
-      backendAzureRmContainerName: 'tfstateazdevsea01'
-      backendAzureRmKey: 'terraform.tfstate'
+  stages:
+  - stage: TerraformInstall
+    displayName: Validate
+    jobs:
+      - job: validate
+        continueOnError: false
+        steps:
+          - task: TerraformInstaller@1
+            displayName: Terraform_Install
+            inputs:
+              terraformVersion: '1.4.6'
+          - task: TerraformTaskV4@4
+            displayName: terraform init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
+              backendServiceArm: 'AzureIntegration'
+              backendAzureRmResourceGroupName: '$(bckstrgrg)'
+              backendAzureRmStorageAccountName: '$(bckstrgstracc)'
+              backendAzureRmContainerName: '$(bckstrgctrnm)'
+              backendAzureRmKey: '$(bckstrky)'
+
