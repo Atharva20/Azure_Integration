@@ -9,6 +9,13 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  bckstrgrg: "rgazdevsea01"
+  bckstrgstracc: "saazdevsea01"
+  bckstrgctrnm: "tfstateazdevsea01"
+  bckstrky: "terraform.tfstate"
+  anyTfChanges: false
+
 stages:
   - stage: TerraformInstall
     displayName: Validate
