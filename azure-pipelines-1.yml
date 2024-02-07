@@ -1,0 +1,28 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  bckstrgrg: "rg-sco-tfstate-sea-01"
+  bckstrgstracc: "sascotfstatesea01"
+  bckstrgctrnm: "terraform"
+  bckstrky: "terraform.tfstate"
+  anyTfChanges: false
+
+  - task: TerraformTaskV4@4
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
+      backendServiceArm: 'AzureIntegration'
+      backendAzureRmResourceGroupName: 'rgazdevsea01'
+      backendAzureRmStorageAccountName: 'saazdevsea01'
+      backendAzureRmContainerName: 'tfstateazdevsea01'
+      backendAzureRmKey: 'terraform.tfstate'
