@@ -9,14 +9,7 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-variables:
-  bckstrgrg: "rgazdevsea01"
-  bckstrgstracc: "saazdevsea01"
-  bckstrgctrnm: "tfstateazdevsea01"
-  bckstrky: "terraform.tfstate"
-  anyTfChanges: false
-
-  stages:
+stages:
   - stage: TerraformInstall
     displayName: Validate
     jobs:
@@ -34,8 +27,8 @@ variables:
               command: 'init'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
               backendServiceArm: 'AzureIntegration'
-              backendAzureRmResourceGroupName: '$(bckstrgrg)'
-              backendAzureRmStorageAccountName: '$(bckstrgstracc)'
-              backendAzureRmContainerName: '$(bckstrgctrnm)'
-              backendAzureRmKey: '$(bckstrky)'
+              backendAzureRmResourceGroupName: 'rgazdevsea01'
+              backendAzureRmStorageAccountName: 'saazdevsea01'
+              backendAzureRmContainerName: 'tfstateazdevsea01'
+              backendAzureRmKey: 'terraform.tfstate'
 
