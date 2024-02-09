@@ -39,3 +39,14 @@ stages:
               backendAzureRmContainerName: '$(bckstrgctrnm'
               backendAzureRmKey: '$(bckstrky)'
 
+          - task: NuGetToolInstaller@1
+            inputs:
+              versionSpec: 
+              checkLatest: true
+
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '6.x'
+              installationPath: $(Agent.ToolsDirectory)/dotnet2
+
