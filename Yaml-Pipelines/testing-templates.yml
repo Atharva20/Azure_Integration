@@ -28,7 +28,7 @@ resources:
 pool: 'windows-latest'
 
 steps:
-  - template: yaml-templates/terraform-validate-and-plan.yml@Azure_Integration_Templates
+  - template: yaml-templates/test-template.yml@Azure_Integration_Templates
     parameters:
       backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
       backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
