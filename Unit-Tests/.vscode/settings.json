@@ -2,6 +2,7 @@
     "dotnet-test-explorer.autoExpandTree": true,
     "dotnet-test-explorer.autoWatch": true,
     "dotnet-test-explorer.treeMode": "full",
-    "dotnet-test-explorer.testArguments": "/p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./Unit-Tests/TestResults/lcov.info",
+    //"dotnet-test-explorer.testArguments": "/p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./Unit-Tests/TestResults/lcov.info",
+    "dotnet-test-explorer.testArguments": "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./Unit-Tests/TestResults/",
     "dotnet-test-explorer.testProjectPath": "Unit-Tests.csproj"
 }
