@@ -11,7 +11,7 @@ variables:
   backendAzureRmStorageAccountName: "saazdevsea01"
   backendAzureRmContainerName: "tfstateazdevsea01"
   backendAzureRmKey: "terraform.tfstate"
-  varFile: './tfVars/dev.tfvars'
+  varFile: './env-tfVars/dev.tfvars'
   environmentServiceNameAzureRM: 'AzureIntegration'
   backendServiceArm: 'AzureIntegration'
   workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
