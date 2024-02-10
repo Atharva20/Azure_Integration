@@ -13,7 +13,6 @@ resource "azurerm_logic_app_standard" "testlogicapp" {
     "WEBSITE_NODE_DEFAULT_VERSION"        = "~18"
     "client_storage_account_url"          = local.client_storage_account_url
     "servicebus_fullyqualified_namespace" = local.servicebus_fullyqualified_namespace
-    "storage_account_connectionstring"    = local.storage_account_connectionstring_ref1
   }
 
   identity {
