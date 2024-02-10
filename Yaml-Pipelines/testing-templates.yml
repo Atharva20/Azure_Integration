@@ -1,7 +1,10 @@
 
 
 
-trigger: none
+trigger:
+  branches: 
+    include:
+    - 'feature/*'
 
 variables:
   backendAzureRmResourceGroupName: "rgazdevsea01"
@@ -25,7 +28,7 @@ resources:
 pool: 'windows-latest'
 
 steps:
-  - template: Jobs/terraform-validate-and-plan.yml@Azure_Integration_Templates
+  - template: jobs/terraform-validate-and-plan.yml@Azure_Integration_Templates
     parameters:
       backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
       backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
