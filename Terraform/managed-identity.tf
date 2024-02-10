@@ -1,7 +1,7 @@
 resource "azurerm_role_assignment" "fa-sa-contributor" {
   count                = var.deploy_tier ? 1 : 0
   scope                = azurerm_storage_account.clientstorageaccount[0].id
-  role_definition_name = var.storage_access_role_definations
+  role_definition_name = var.storage_access_role_defination
   principal_id         = azurerm_windows_function_app.azureintegration[0].identity[0].principal_id
 }
 
