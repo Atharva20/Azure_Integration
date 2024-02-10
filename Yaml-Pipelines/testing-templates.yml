@@ -17,6 +17,15 @@ variables:
   workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
   anyTfChanges: false
 
+resources:
+  repositories:
+    - repository: Azure_Integration_Templates
+      type: github
+      name: Atharva20/Azure_Integration_Templates
+      endpoint: Atharva20
+      ref: 'refs/heads/main'
+
+
 pool:
   vmImage: ubuntu-latest
 
