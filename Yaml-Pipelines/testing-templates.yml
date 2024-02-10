@@ -1,10 +1,7 @@
 
 
 
-trigger:
-  branches: 
-    include:
-    - 'feature/*'
+trigger: none
 
 
 pool:
@@ -30,7 +27,7 @@ resources:
       ref: 'refs/heads/main'
 
 stages:
-  - stage: terraformValidate
+  - stage: terraform_validate
     displayName: 'Terraform Validate'
     jobs:
       - job: Terraform-Validate
@@ -46,7 +43,7 @@ stages:
               backendServiceArm: '$(backendServiceArm)'
               workingDirectory: '$(workingDirectory)'
 
-  - stage: functionAppValidate
+  - stage: functionapp_validate
     displayName: 'FunctionApp Validate'
     jobs:
       - job: FunctionApp-Validate
