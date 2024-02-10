@@ -25,7 +25,9 @@ resources:
       endpoint: Atharva20
       ref: 'refs/heads/main'
 
-pool: ubuntu-latest
+
+pool:
+  vmImage: ubuntu-latest
 
 steps:
   - template: yaml-templates/test-template.yml@Azure_Integration_Templates
