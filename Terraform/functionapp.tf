@@ -20,8 +20,6 @@ resource "azurerm_windows_function_app" "azureintegration" {
     "client_storage_account_url"                         = local.client_storage_account_url
     "servicebus_fullyqualified_namespace"                = local.servicebus_fullyqualified_namespace
     "AzureWebJobs.PullMsgFromTargetBlobStorage.Disabled" = true
-    "storage_account_connectionstring_ref1"              = local.storage_account_connectionstring_ref1
-    "storage_account_connectionstring_ref2"              = local.storage_account_connectionstring_ref2
   }
 }
 
