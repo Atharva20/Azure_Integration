@@ -25,7 +25,7 @@ resources:
       endpoint: Atharva20
       ref: 'refs/heads/main'
 
-pool: 'windows-latest'
+pool: ubuntu-latest
 
 steps:
   - template: Jobs/terraform-validate-and-plan.yml@Azure_Integration_Templates
