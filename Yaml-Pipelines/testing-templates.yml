@@ -15,7 +15,8 @@ variables:
   varFile: './env-tfVars/dev.tfvars'
   environmentServiceNameAzureRM: 'AzureIntegration'
   backendServiceArm: 'AzureIntegration'
-  workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
+  workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
+  workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/FunctionApp'
   anyTfChanges: false
 
 resources:
@@ -42,7 +43,7 @@ stages:
               varFile: '$(varFile)'
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
               backendServiceArm: '$(backendServiceArm)'
-              workingDirectory: '$(workingDirectory)'
+              workingDirectory: '$(workingDirectoryTerraform)'
 
   - stage: functionapp_validate
     displayName: 'FunctionApp Validate'
@@ -52,7 +53,7 @@ stages:
         steps:
           - template: yaml-templates/functionapp-build-and-validate.yml@Azure_Integration_Templates
             parameters:
-              workingDirectory: '$(workingDirectory)'
+              workingDirectory: '$(workingDirectoryFunctionApp)'
               dotNetSdkVersion: 8.x
               projects: |
                 **/FunctionApp/*.csproj
