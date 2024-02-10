@@ -30,7 +30,8 @@ stages:
   - stage: terraform_validate
     displayName: 'Terraform Validate'
     jobs:
-      - job: Terraform-Validate
+      - job: terraform_validate
+        displayName: 'Validating Terraform'
         steps:
           - template: yaml-templates/test-template.yml@Azure_Integration_Templates
             parameters:
@@ -46,7 +47,8 @@ stages:
   - stage: functionapp_validate
     displayName: 'FunctionApp Validate'
     jobs:
-      - job: FunctionApp-Validate
+      - job: functionapp_validate
+        displayName: 'FunctionApp Validating'
         steps:
           - template: yaml-templates/functionapp-build-and-validate.yml@Azure_Integration_Templates
             parameters:
