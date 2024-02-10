@@ -1,0 +1,41 @@
+
+
+
+trigger:
+  branches: 
+    include:
+    - 'feature/*'
+
+variables:
+  backendAzureRmResourceGroupName: "rgazdevsea01"
+  backendAzureRmStorageAccountName: "saazdevsea01"
+  backendAzureRmContainerName: "tfstateazdevsea01"
+  backendAzureRmKey: "terraform.tfstate"
+  varFile: './tfVars/dev.tfvars'
+  environmentServiceNameAzureRM: 'AzureIntegration'
+  backendServiceArm: 'AzureIntegration'
+  workingDirectory: '$(System.DefaultWorkingDirectory)/Terraform'
+  anyTfChanges: false
+
+resources:
+  repositories:
+    - repository: Azure_Integration_Templates
+      type: github
+      name: Atharva20/Azure_Integration_Templates
+      endpoint: Atharva20
+      ref: 'refs/heads/main'
+
+pool: 'windows-latest'
+
+steps:
+  - template: Jobs/terraform-validate-and-plan.yml@Azure_Integration_Templates
+    parameters:
+      backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+      backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+      backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+      backendAzureRmKey: '$(backendAzureRmKey)'
+      varFile: '$(varFile)'
+      environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+      backendServiceArm: '$(backendServiceArm)'
+      workingDirectory: '$(workingDirectory)'
+
