@@ -6,6 +6,10 @@ trigger:
     include:
     - 'feature/*'
 
+
+pool:
+  vmImage: ubuntu-latest
+
 variables:
   backendAzureRmResourceGroupName: "rgazdevsea01"
   backendAzureRmStorageAccountName: "saazdevsea01"
@@ -25,19 +29,34 @@ resources:
       endpoint: Atharva20
       ref: 'refs/heads/main'
 
+stages:
+  - stage: terraformValidate
+    displayName: 'Terraform Validate'
+    jobs:
+      - job: Terraform-Validate
+        steps:
+          - template: yaml-templates/test-template.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: '$(varFile)'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectory)'
 
-pool:
-  vmImage: ubuntu-latest
+  - stage: functionAppValidate
+    displayName: 'FunctionApp Validate'
+    jobs:
+      - job: FunctionApp-Validate
+        steps:
+          - template: yaml-templates/functionapp-build-and-validate.yml@Azure_Integration_Templates
+            parameters:
+              workingDirectory: '$(workingDirectory)'
+              dotNetSdkVersion: 6.x
+              projects: |
+                FunctionApp/*.csproj
+                Unit-Tests/*.csproj
 
-steps:
-  - template: yaml-templates/test-template.yml@Azure_Integration_Templates
-    parameters:
-      backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
-      backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
-      backendAzureRmContainerName: '$(backendAzureRmContainerName)'
-      backendAzureRmKey: '$(backendAzureRmKey)'
-      varFile: '$(varFile)'
-      environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
-      backendServiceArm: '$(backendServiceArm)'
-      workingDirectory: '$(workingDirectory)'
-
+        
