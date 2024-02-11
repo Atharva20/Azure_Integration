@@ -13,7 +13,7 @@ variables:
   backendAzureRmContainerName: "tfstateazdevsea01"
   backendAzureRmKey: "terraform.tfstate"
   varFile: './env-tfVars/dev.tfvars'
-  environmentServiceNameAzureRM: 'AzureIntegration'
+  environmentServiceNameAzureRM: 'ManagedIdentity'
   backendServiceArm: 'ManagedIdentity'
   workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
   workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/Unit-Tests'
