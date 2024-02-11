@@ -42,8 +42,8 @@
             "command": "reportgenerator",
             "type": "shell",
             "args": [
-                "-reports:${workspaceFolder}/Unit-Tests/TestResults/lcov.info",
-                "-targetdir:${workspaceFolder}/Unit-Tests/TestResults/coveragereport"
+                "-reports:${workspaceFolder}/Unit-Tests-Results/TestResults/coverage.cobertura.xml", //"-reports:${workspaceFolder}/Unit-Tests-Results/TestResults/lcov.info", 
+                "-targetdir:${workspaceFolder}/Unit-Tests-Results/TestResults/coveragereport"
             ],
             "problemMatcher": []
         }

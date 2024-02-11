@@ -24,4 +24,12 @@
   <ItemGroup>
     <ProjectReference Include="..\FunctionApp\FunctionApp.csproj" />
   </ItemGroup>
+<ItemGroup>
+    <None Update="Data\SampleShipment1.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SampleShipment2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+</ItemGroup>
 </Project>
