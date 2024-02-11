@@ -28,22 +28,22 @@ resources:
       ref: 'refs/heads/main'
 
 stages:
-  # - stage: terraform_validate
-  #   displayName: 'Terraform Validate'
-  #   jobs:
-  #     - job: terraform_validate
-  #       displayName: 'Validating Terraform'
-  #       steps:
-  #         - template: yaml-templates/test-template.yml@Azure_Integration_Templates
-  #           parameters:
-  #             backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
-  #             backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
-  #             backendAzureRmContainerName: '$(backendAzureRmContainerName)'
-  #             backendAzureRmKey: '$(backendAzureRmKey)'
-  #             varFile: '$(varFile)'
-  #             environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
-  #             backendServiceArm: '$(backendServiceArm)'
-  #             workingDirectory: '$(workingDirectoryTerraform)'
+  - stage: terraform_validate
+    displayName: 'Terraform Validate'
+    jobs:
+      - job: terraform_validate
+        displayName: 'Validating Terraform'
+        steps:
+          - template: yaml-templates/test-template.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: '$(varFile)'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectoryTerraform)'
 
   - stage: functionapp_validate
     displayName: 'FunctionApp Validate'
