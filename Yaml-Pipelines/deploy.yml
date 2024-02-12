@@ -1,0 +1,60 @@
+
+
+
+trigger:
+  branches: 
+    include:
+    - 'feature/*'
+
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  backendAzureRmResourceGroupName: "rgazdevsea01"
+  backendAzureRmStorageAccountName: "saazdevsea01"
+  backendAzureRmContainerName: "tfstateazdevsea01"
+  backendAzureRmKey: "terraform.tfstate"
+  varFile: './env-tfVars/dev.tfvars'
+  environmentServiceNameAzureRM: 'AzureIntegration'
+  backendServiceArm: 'AzureIntegration'
+  workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
+  workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/Unit-Tests'
+  anyTfChanges: false
+
+resources:
+  repositories:
+    - repository: Azure_Integration_Templates
+      type: github
+      name: Atharva20/Azure_Integration_Templates
+      endpoint: Atharva20
+      ref: 'refs/heads/main'
+
+stages:
+  - stage: terraform_validate
+    displayName: 'Terraform Apply'
+    jobs:
+      - job: terraform_validate
+        displayName: 'Validating Terraform'
+        steps:
+          - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: '$(varFile)'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectoryTerraform)'
+
+  - stage: functionapp_validate
+    displayName: 'FunctionApp Deploy'
+    jobs:
+      - job: functionapp_validate
+        displayName: 'FunctionApp Validating'
+        steps:
+          - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              functionAppName: 'fa-azureintegration-devv-sea-01'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'

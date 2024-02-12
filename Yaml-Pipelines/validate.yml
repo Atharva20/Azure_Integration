@@ -1,0 +1,66 @@
+
+
+
+trigger:
+  branches: 
+    include:
+    - 'feature/*'
+
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  backendAzureRmResourceGroupName: "rgazdevsea01"
+  backendAzureRmStorageAccountName: "saazdevsea01"
+  backendAzureRmContainerName: "tfstateazdevsea01"
+  backendAzureRmKey: "terraform.tfstate"
+  varFile: './env-tfVars/dev.tfvars'
+  environmentServiceNameAzureRM: 'AzureIntegration'
+  backendServiceArm: 'AzureIntegration'
+  workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
+  workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/Unit-Tests'
+  anyTfChanges: false
+
+resources:
+  repositories:
+    - repository: Azure_Integration_Templates
+      type: github
+      name: Atharva20/Azure_Integration_Templates
+      endpoint: Atharva20
+      ref: 'refs/heads/main'
+
+stages:
+  - stage: terraform_validate
+    displayName: 'Terraform Validate'
+    jobs:
+      - job: terraform_validate
+        displayName: 'Validating Terraform'
+        steps:
+          - template: yaml-templates/terraform-validate-and-plan.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: '$(varFile)'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectoryTerraform)'
+
+  - stage: functionapp_validate
+    displayName: 'FunctionApp Validate'
+    jobs:
+      - job: functionapp_validate
+        displayName: 'FunctionApp Validating'
+        steps:
+          - template: yaml-templates/functionapp-build-and-validate.yml@Azure_Integration_Templates
+            parameters:
+              workingDirectory: '$(workingDirectoryFunctionApp)'
+              projectName: 'FunctionApp'
+              dotNetSdkVersion: 8.x
+              projects: |
+                **/FunctionApp/*.csproj
+                **/Unit-Tests/*.csproj
+
+        

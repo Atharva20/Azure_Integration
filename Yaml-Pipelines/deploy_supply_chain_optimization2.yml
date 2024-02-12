@@ -85,6 +85,7 @@ stages:
       - job: functionAppDeploy
         continueOnError: false
         steps:
+        
           - task: DotNetCoreCLI@2
             displayName: build the C# project
             inputs:
@@ -92,6 +93,8 @@ stages:
               projects: '**/*.csproj'
               arguments: '--output $(Build.BinariesDirectory)/publish_output --configuration Release'
               workingDirectory: '$(System.DefaultWorkingDirectory)/Functtion_Apps'
+
+
           - task: ArchiveFiles@2
             displayName: store the output in artifacts
             inputs:
