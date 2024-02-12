@@ -56,5 +56,5 @@ stages:
         steps:
           - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
             parameters:
-              functionAppName: 'fa-azureintegration-devv-sea-01'
+              functionAppName: 'fa-azint-dev-sea-01'
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
