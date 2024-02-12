@@ -16,7 +16,7 @@ locals {
   # storage_account_connectionstring_ref2 = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/%s/)", local.keyvault_name, "storageconnectionstring")
 
   # FunctionApp Name
-  functionapp_name                 = format("fa-%s-%s-%s-%s", "azint", var.env, "sea", var.instance) // fa-azureintegration-devv-sea-01
+  functionapp_name                 = format("fa-%s-%s-%s-%s", "azint", var.env, "sea", var.instance) // fa-azint-devv-sea-01
   functionapp_storage_account_name = format("fasa%sfa%s%s%s", "az", var.env, "sea", var.instance)
 
   # Logic Name
@@ -24,8 +24,8 @@ locals {
   logic_storage_account_name = format("lasa%sfa%s%s%s", "az", var.env, "sea", var.instance)
 
   # Service Bus
-  servicebus_namespace                = format("sa-%s-%s-%s-%s", "azint", var.env, "sea", var.instance) // sa-azureintegration-devv-sea-01
-  servicebus_fullyqualified_namespace = format("%s.servicebus.windows.net", local.servicebus_namespace) // sa-azureintegration-devv-sea-01.servicebus.windows.net
+  servicebus_namespace                = format("sa-%s-%s-%s-%s", "azint", var.env, "sea", var.instance) // sa-azint-devv-sea-01
+  servicebus_fullyqualified_namespace = format("%s.servicebus.windows.net", local.servicebus_namespace) // sa-azint-devv-sea-01.servicebus.windows.net
   servicebus_topic_name               = format("sbt-%s-%s-%s-%s", "azint", var.env, "sea", var.instance)
   servicebus_queue_name               = format("sbq-%s-%s-%s-%s", "azint", var.env, "sea", var.instance)
 
