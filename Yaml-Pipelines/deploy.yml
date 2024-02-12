@@ -1,83 +1,60 @@
-# This template will validate and plan the Terraform validate pipeline
 
 
-parameters:
-  - name: workingDirectory
-  - name: backendServiceArm
-  - name: environmentServiceNameAzureRM
-  - name: backendAzureRmResourceGroupName
-  - name: backendAzureRmStorageAccountName
-  - name: backendAzureRmContainerName
-  - name: backendAzureRmKey
-  - name: varFile
-  - name: anyTfChanges
-    default: false
+
+trigger:
+  branches: 
+    include:
+    - 'feature/*'
 
 
-steps:
-  - checkout: self
-    clean: true
+pool:
+  vmImage: windows-latest
 
-  - task: TerraformInstaller@1
-    displayName: 'Installing Terraform'
-    inputs:
-      terraformVersion: '1.6.2'
+variables:
+  backendAzureRmResourceGroupName: "rgazdevsea01"
+  backendAzureRmStorageAccountName: "saazdevsea01"
+  backendAzureRmContainerName: "tfstateazdevsea01"
+  backendAzureRmKey: "terraform.tfstate"
+  varFile: './env-tfVars/dev.tfvars'
+  environmentServiceNameAzureRM: 'AzureIntegration'
+  backendServiceArm: 'AzureIntegration'
+  workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
+  workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/Unit-Tests'
+  anyTfChanges: false
 
-  - task: TerraformTaskV4@4
-    displayName: 'Inititalise Terraform'
-    inputs:
-      provider: 'azurerm'
-      command: 'init'
-      workingDirectory: '${{ parameters.workingDirectory }}'
-      backendServiceArm: '${{ parameters.backendServiceArm }}'
-      backendAzureRmResourceGroupName: '${{ parameters.backendAzureRmResourceGroupName }}'
-      backendAzureRmStorageAccountName: '${{ parameters.backendAzureRmStorageAccountName }}'
-      backendAzureRmContainerName: '${{ parameters.backendAzureRmContainerName }}'
-      backendAzureRmKey: '${{ parameters.backendAzureRmKey }}'
+resources:
+  repositories:
+    - repository: Azure_Integration_Templates
+      type: github
+      name: Atharva20/Azure_Integration_Templates
+      endpoint: Atharva20
+      ref: 'refs/heads/main'
 
-  - task: TerraformTaskV4@4
-    displayName: 'Validate Terraform'
-    inputs:
-      provider: 'azurerm'
-      command: 'validate'
-      workingDirectory: '${{ parameters.workingDirectory }}'
+stages:
+  - stage: terraform_validate
+    displayName: 'Terraform Apply'
+    jobs:
+      - job: terraform_validate
+        displayName: 'Validating Terraform'
+        steps:
+          - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: '$(varFile)'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectoryTerraform)'
 
-  - task: TerraformTaskV4@4
-    displayName: 'Plan Terraform'
-    inputs:
-      provider: 'azurerm'
-      command: 'plan'
-      workingDirectory: '${{ parameters.workingDirectory }}'
-      commandOptions: '-input=false -out=tfplan  -var-file="${{ parameters.varFile }}"'
-      environmentServiceNameAzureRM: '${{ parameters.environmentServiceNameAzureRM }}'
-
-  - task: PowerShell@2
-    displayName: ' Checking tfplan '
-    inputs:
-      targetType: 'inline'
-      script: |
-        # Write-Host "LASTEXITCODE : $LASTEXITCODE"
-                              $plan = $(terraform show -json tfplan | ConvertFrom-Json)
-                              $actions = $plan.resource_changes.change.actions
-                              Write-Host "Terraform actions : $actions"
-                              if (($actions -contains 'create') -or ($actions -contains 'delete') -or ($actions -contains 'update'))
-                              {
-                                Write-Host "Terraform will perform the following actions : $actions"
-                                Write-Host "##vso[task.setvariable variable=anyTfChanges;]true"
-                              }
-                              else
-                              {
-                                Write-Host "There is no change detected in Terraform tfplan file"
-                              }
-
-  - task: TerraformTaskV4@4
-    displayName: 'Apply Terraform'
-    condition: eq(variables.anyTfChanges, true)
-    inputs:
-      provider: 'azurerm'
-      command: 'apply'
-      workingDirectory: '${{ parameters.workingDirectory }}'
-      commandOptions: 'tfplan'
-      environmentServiceNameAzureRM: '${{ parameters.environmentServiceNameAzureRM }}'
-
-      
+  - stage: functionapp_validate
+    displayName: 'FunctionApp Deploy'
+    jobs:
+      - job: functionapp_validate
+        displayName: 'FunctionApp Validating'
+        steps:
+          - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              functionAppName: 'fa-azureintegration-devv-sea-01'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
