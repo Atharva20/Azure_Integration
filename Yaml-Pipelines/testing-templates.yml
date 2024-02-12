@@ -55,6 +55,7 @@ stages:
             parameters:
               workingDirectory: '$(workingDirectoryFunctionApp)'
               dotNetSdkVersion: 8.x
+              projectName: 'FunctionApp'
               projects: |
                 **/FunctionApp/*.csproj
                 **/Unit-Tests/*.csproj
