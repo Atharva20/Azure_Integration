@@ -54,7 +54,7 @@ stages:
       - job: functionapp_validate
         displayName: 'FunctionApp Validating'
         steps:
-          - template: yaml-templates/functionapp-validate.yml@Azure_Integration_Templates
+          - template: yaml-templates/functionapp-build-and-validate.yml@Azure_Integration_Templates
             parameters:
               dotNetSdkVersion: 8.x
               projects: |
