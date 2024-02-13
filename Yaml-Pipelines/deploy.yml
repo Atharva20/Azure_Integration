@@ -57,8 +57,3 @@ stages:
             parameters:
               functionAppName: 'fa-azint-dev-sea-01'
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
-              workingDirectory: '$(workingDirectoryFunctionApp)'
-              projectName: 'FunctionApp'
-              projects: |
-                **/FunctionApp/*.csproj
-                **/Unit-Tests/*.csproj

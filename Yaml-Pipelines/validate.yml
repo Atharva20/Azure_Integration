@@ -56,6 +56,8 @@ stages:
         steps:
           - template: yaml-templates/functionapp-build-and-validate.yml@Azure_Integration_Templates
             parameters:
+              workingDirectory: '$(workingDirectoryFunctionApp)'
+              projectName: 'FunctionApp'
               dotNetSdkVersion: 8.x
               projects: |
                 **/FunctionApp/*.csproj
