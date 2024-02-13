@@ -53,7 +53,7 @@ stages:
       - job: functionapp_validate
         displayName: 'FunctionApp Validating'
         steps:
-          - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
+          - template: yaml-templates/functionapp-build-and-deploy.yml@Azure_Integration_Templates
             parameters:
               functionAppName: 'fa-azint-dev-sea-01'
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
