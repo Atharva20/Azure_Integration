@@ -14,5 +14,6 @@
     },
     "omnisharp.dotNetCliPaths": [
         "C:\\Users\\Atharva_20\\.azurelogicapps\\dependencies\\DotNetSDK"
-    ]
+    ],
+    "azureFunctions.projectSubpath": "FunctionApp"
 }

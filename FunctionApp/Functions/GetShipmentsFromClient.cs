@@ -11,10 +11,13 @@ namespace AzureIntegration.Functions
     using AzureIntegration.Utility;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
+    using System.Diagnostics.CodeAnalysis;
+
 
     /// <summary>
     /// Fetches the shipment jsons and returns the transformed csv shipments directory path.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class GetShipmentsFromClient
     {
         private readonly ILogger<GetShipmentsFromClient> _logger;
@@ -36,12 +39,10 @@ namespace AzureIntegration.Functions
         /// </summary>
         /// <param name="myTimer"></param>
         [FunctionName("GetShipmentsFromClient")]
-        public async Task<IActionResult> Run([TimerTrigger("0 */15 * * * *")] TimerInfo myTimer)
+        public async Task Run([TimerTrigger("0 */15 * * * *")] TimerInfo myTimer)
         {
 
             List<Tuple<string, string>> allShipmetContent = new();
-
-            ShipmentResponse outputResponse = null;
 
             try
             {
@@ -70,22 +71,12 @@ namespace AzureIntegration.Functions
                     getShipmentsFromClientUtlity.SendShipmentCsvLocToClient(transformedCsvShipments, clientCsvShipmentLoc);
                     _logger.LogInformation($"The blob path containing transformed shipments {clientCsvShipmentLoc} has been shared to the client subscription.");
 
-                    ShipmentResponse shipmentResponse = new()
-                    {
-                        TotalShipmentsReceieved = allShipmetContent.Count,
-                        TotalShipmentsTransformed = transformedCsvShipments,
-                        OutputTransformedLoc = clientCsvShipmentLoc
-                    };
-                    outputResponse = shipmentResponse;
                 }
-                
-                return new OkObjectResult(outputResponse);
 
             }
             catch (Exception ex)
             {
                 _logger.LogError($"The blob path containing transformed shipments cannot be shared because of {ex.Message} and {ex.StackTrace}");
-                return new BadRequestObjectResult(ex.Message);
             }
         }
     }

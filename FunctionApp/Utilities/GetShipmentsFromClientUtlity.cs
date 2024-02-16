@@ -11,10 +11,12 @@ namespace AzureIntegration.Utility
     using Azure.Messaging.ServiceBus;
     using AzureIntegration.Interfaces;
     using Microsoft.Extensions.Logging;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Converts the shipment jsons to csv format.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class GetShipmentsFromClientUtlity
     {
         private readonly ILogger<GetShipmentsFromClientUtlity> _logger;

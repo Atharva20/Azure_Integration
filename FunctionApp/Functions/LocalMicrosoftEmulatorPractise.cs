@@ -130,9 +130,9 @@
 
 //                 BlobServiceClient serviceClient = new(configuration["AzureWebJobsStorage"]);
 
-//                 BlobContainerClient inboundBlobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "inputshipmetjsons");
+//                 BlobContainerClient inboundBlobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientstorageaccountname");
 
-//                 BlobContainerClient outboundBlobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "outputshipmetcsv");
+//                 BlobContainerClient outboundBlobContainerClient = blobStorageService.GetTargetBlobConatinerFromClientLocation(serviceClient, "clientoutputaccountname");
 
 //                 string clientCsvShipmentLoc = $"transformed-shipment-csv/{currentDateTime}";
 
