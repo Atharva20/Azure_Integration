@@ -4,5 +4,6 @@
     "dotnet-test-explorer.treeMode": "full",
     //"dotnet-test-explorer.testArguments": "/p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./Unit-Tests-Results/TestResults/lcov.info",
     "dotnet-test-explorer.testArguments": "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./Unit-Tests-Results/TestResults/coverage.cobertura.xml",
-    "dotnet-test-explorer.testProjectPath": "Unit-Tests.csproj"
+    "dotnet-test-explorer.testProjectPath": "Unit-Tests.csproj",
+    "azureFunctions.projectSubpath": "bin\\Debug\\net6.0"
 }
