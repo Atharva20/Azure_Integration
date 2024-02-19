@@ -4,7 +4,6 @@ namespace AzureIntegration.Utility
     using System.Collections.Generic;
     using AzureIntegration.Models;
     using Microsoft.Extensions.Configuration;
-    using Newtonsoft.Json;
     using Azure.Storage.Blobs;
     using AzureIntegration.Transformation;
     using AzureIntegration.Globals;
@@ -12,6 +11,7 @@ namespace AzureIntegration.Utility
     using AzureIntegration.Interfaces;
     using Microsoft.Extensions.Logging;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text.Json;
 
     /// <summary>
     /// Converts the shipment jsons to csv format.
@@ -19,13 +19,13 @@ namespace AzureIntegration.Utility
     [ExcludeFromCodeCoverage]
     public class GetShipmentsFromClientUtlity
     {
-        private readonly ILogger<GetShipmentsFromClientUtlity> _logger;
+        private readonly ILogger<GetShipmentsFromClientUtlity> logger;
         private readonly IConfiguration configuration;
         private readonly IBlobStorageService blobStorageService;
         private readonly IServiceBusService serviceBusService;
         public GetShipmentsFromClientUtlity(IConfiguration configuration, IBlobStorageService blobStorageService, IServiceBusService serviceBusService, ILogger<GetShipmentsFromClientUtlity> logger)
         {
-            this._logger = logger;
+            this.logger = logger;
             this.configuration = configuration;
             this.blobStorageService = blobStorageService;
             this.serviceBusService = serviceBusService;
@@ -55,19 +55,19 @@ namespace AzureIntegration.Utility
 
                         blobStorageService.AppendContentToBlob(outboundBlobContainerClient, outputBlobName, outputCsvShipment.ResponseContent);
 
-                        _logger.LogInformation($"The shipment data for {currentShipment.Item1} is successfully uploaded to the location.");
+                        logger.LogInformation($"The shipment data for {currentShipment.Item1} is successfully uploaded to the location.");
 
                         transformedCsvShipments++;
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"The shipment for the blob {currentShipment.Item1} was not processed due to the error stating : {ex.Message} and {ex.StackTrace}.");
+                        logger.LogError($"The shipment for the blob {currentShipment.Item1} was not processed due to the error stating : {ex.Message} and {ex.StackTrace}.");
                     }
                 }
             }
             else
             {
-                _logger.LogWarning("There was no data for the current trigger.");
+                logger.LogWarning("There was no data for the current trigger.");
                 throw new Exception("Empty request body.");
             }
 
@@ -79,8 +79,17 @@ namespace AzureIntegration.Utility
         /// </summary>
         /// <param name="transformedCsvShipments">Provides the count for the transformed shipments.</param>
         /// <param name="clientCsvShipmentLoc">The blob path where the transformed shipments are stored.</param>
-        public void SendShipmentCsvLocToClient(int transformedCsvShipments, string clientCsvShipmentLoc)
+        public string SendShipmentCsvLocToClient(int shipmentsReceieved, int transformedCsvShipments, string clientCsvShipmentLoc)
         {
+
+            ShipmentResponse shipmentResponse = new()
+            {
+                TotalShipmentsReceieved = shipmentsReceieved,
+                TotalShipmentsTransformed = transformedCsvShipments,
+                OutputTransformedLoc = clientCsvShipmentLoc
+            };
+
+            string sbContent = JsonSerializer.Serialize(shipmentResponse);           
 
             string fullyQualifiedNamespace = configuration["servicebus_fullyqualified_namespace"];
 
@@ -88,9 +97,11 @@ namespace AzureIntegration.Utility
 
             ServiceBusSender serviceBusSender = serviceBusService.GetServiceBusSender(serviceBusClient, $"{Globals.SB_TOPIC}");
 
-            serviceBusService.SendMsgToTopicSubs(serviceBusSender, "outbound_subs", clientCsvShipmentLoc);
+            serviceBusService.SendMsgToTopicSubs(serviceBusSender, "outbound_subs", sbContent);
 
-            _logger.LogInformation($"The directory location{clientCsvShipmentLoc} containing {transformedCsvShipments} transformed shipment Csv Data is successfully shared to the client.");
+            logger.LogInformation($"The directory location{clientCsvShipmentLoc} containing {transformedCsvShipments} transformed Data is successfully shared to the client.");
+
+            return sbContent;
 
         }
     }

@@ -9,8 +9,6 @@ namespace AzureIntegration.Interfaces.Services
     using System.IO;
     using System.Text;
     using Azure.Storage.Blobs.Specialized;
-    using Azure;
-    using System.Linq;
     using System.Diagnostics.CodeAnalysis;
 
     [ExcludeFromCodeCoverage]

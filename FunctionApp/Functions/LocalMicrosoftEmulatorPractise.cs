@@ -149,7 +149,7 @@
 //                         OutputTransformedLoc = clientCsvShipmentLoc
 //                     };
 //                     outputResponse = shipmentResponse;
-//                     //getShipmentsFromClientUtlity.SendShipmentCsvLocToClient(transformedCsvShipments, clientCsvShipmentLoc);
+//                     //getShipmentsFromClientUtlity.SendShipmentCsvLocToClient(allShipmetContent, transformedCsvShipments, clientCsvShipmentLoc);
 //                 }
 
 //                 return new OkObjectResult(outputResponse);
