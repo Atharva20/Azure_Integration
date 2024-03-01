@@ -18,7 +18,7 @@ variables:
   varFile: './env-tfVars/dev.tfvars'
   environmentServiceNameAzureRM: 'AzureIntegration'
   backendServiceArm: 'AzureIntegration'
-  workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
+  workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/FunctionApp'
   anyTfChanges: false
 
 resources:
@@ -45,7 +45,7 @@ stages:
               varFile: '$(varFile)'
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
               backendServiceArm: '$(backendServiceArm)'
-              workingDirectory: '$(workingDirectoryTerraform)'
+              workingDirectory: '$(workingDirectoryFunctionApp)'
 
   - stage: functionapp_validate
     displayName: 'FunctionApp Deploy'

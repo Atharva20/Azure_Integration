@@ -19,7 +19,7 @@ variables:
   environmentServiceNameAzureRM: 'AzureIntegration'
   backendServiceArm: 'AzureIntegration'
   workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
-  workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/Unit-Tests'
+  workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/workingDirectoryFunctionApp'
   anyTfChanges: false
 
 resources:
