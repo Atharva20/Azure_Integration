@@ -59,10 +59,7 @@ stages:
               workingDirectory: '$(workingDirectoryFunctionApp)'
               projectName: 'FunctionApp'
               dotNetSdkVersion: 6.x
-              functionAppName: 'fa-azint-dev-sea-01'
-              environmentServiceNameAzureRM: 'AzureIntegration'
               projects: |
                 **/FunctionApp/*.csproj
                 **/Unit-Tests/*.csproj
 
-        
