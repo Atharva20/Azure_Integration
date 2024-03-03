@@ -48,10 +48,10 @@ stages:
               backendServiceArm: '$(backendServiceArm)'
               workingDirectory: '$(workingDirectoryTerraform)'
 
-  - stage: functionapp_validate
+  - stage: functionapp_deploy
     displayName: 'FunctionApp Deploy'
     jobs:
-      - job: functionapp_validate
+      - job: functionapp_deploy
         displayName: 'FunctionApp Validating'
         steps:
           - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
