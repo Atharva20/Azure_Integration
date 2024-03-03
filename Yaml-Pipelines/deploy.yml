@@ -8,7 +8,7 @@ trigger:
 
 
 pool:
-  vmImage: windows-latest
+  vmImage: windows-2019
 
 variables:
   backendAzureRmResourceGroupName: "rgazdevsea01"
