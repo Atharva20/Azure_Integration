@@ -1,4 +1,4 @@
-env         = "dev"
+env         = "devv"
 location    = "Southeast Asia"
 deploy_tier = true
 instance    = "01"

@@ -8,6 +8,7 @@ resource "azurerm_windows_function_app" "azureintegration" {
   storage_account_name       = azurerm_storage_account.functionapp_storage_account[0].name
   storage_account_access_key = azurerm_storage_account.functionapp_storage_account[0].primary_access_key
   service_plan_id            = azurerm_service_plan.fa-asp[0].id
+  builtin_logging_enabled = false
 
   identity {
     type = "SystemAssigned"
@@ -16,9 +17,19 @@ resource "azurerm_windows_function_app" "azureintegration" {
   site_config {
   }
 
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_RUN_FROM_PACKAGE"]
+    ]
+  }
+
   app_settings = {
     "client_storage_account_url"          = local.client_storage_account_url
     "servicebus_fullyqualified_namespace" = local.servicebus_fullyqualified_namespace
+    "FUNCTIONS_EXTENSION_VERSION" = "~4"
+    "FUNCTION_APP_EDIT_MODE" = "readonly"
+    "FUNCTIONS_WORKER_RUNTIME" = "dotnet"
+    
     # "AzureWebJobs.PullMsgFromTargetBlobStorage.Disabled" = true
   }
 }
