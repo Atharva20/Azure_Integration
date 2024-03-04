@@ -16,11 +16,21 @@ resource "azurerm_windows_function_app" "azureintegration" {
   site_config {
   }
 
+
   app_settings = {
     "client_storage_account_url"          = local.client_storage_account_url
     "servicebus_fullyqualified_namespace" = local.servicebus_fullyqualified_namespace
+    "WEBSITE_RUN_FROM_PACKAGE"            = "1"
     # "AzureWebJobs.PullMsgFromTargetBlobStorage.Disabled" = true
   }
+
+  depends_on = [
+    azurerm_resource_group.resourcegrp,
+    azurerm_storage_account.functionapp_storage_account,
+    azurerm_service_plan.fa-asp
+  ]
+
+
 }
 
 #   newtwork_rules
