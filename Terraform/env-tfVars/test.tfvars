@@ -1,7 +1,7 @@
 env         = "test"
 location    = "Southeast Asia"
 deploy_tier = true
-instance    = "01"
+instance    = "001"
 alert_email = "batharva20@gmail.com"
 os_type = "Windows"
 sku_name_func = "Y1"

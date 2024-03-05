@@ -13,7 +13,12 @@ resource "azurerm_windows_function_app" "azureintegration" {
     type = "SystemAssigned"
   }
 
+  functions_extension_version = "~4"
+
   site_config {
+    application_stack {
+      dotnet_version = "6"
+    }
   }
 
 
@@ -21,6 +26,9 @@ resource "azurerm_windows_function_app" "azureintegration" {
     "client_storage_account_url"          = local.client_storage_account_url
     "servicebus_fullyqualified_namespace" = local.servicebus_fullyqualified_namespace
     "WEBSITE_RUN_FROM_PACKAGE"            = "1"
+    "WEBSITE_ENABLE_SYNC_UPDATE_SITE"     = "true"
+    "WEBSITE_RUN_FROM_ZIP"                = "1"
+    #"FUNCTIONS_EXTENSION_VERSION"         = "~4"
     # "AzureWebJobs.PullMsgFromTargetBlobStorage.Disabled" = true
   }
 
