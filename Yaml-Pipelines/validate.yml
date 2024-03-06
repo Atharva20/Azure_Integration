@@ -60,6 +60,6 @@ stages:
               projectName: 'FunctionApp'
               dotNetSdkVersion: 6.x
               projects: |
-                **/FunctionApp/*.csproj
-                **/Unit-Tests/*.csproj
+                FunctionApp/*.csproj
+                Unit-Tests/*.csproj
 
