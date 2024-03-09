@@ -52,7 +52,7 @@ stages:
       - job: logicapp_deploy
         displayName: 'LogicApp Deploy'
         steps:
-          - templates: yaml-templates/logicapp-deploy.yml@Azure_Integration_Templates
+          - template: yaml-templates/logicapp-deploy.yml@Azure_Integration_Templates
             parameters:
               logicAppName: 'la-azint-dev-sea-001'
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
