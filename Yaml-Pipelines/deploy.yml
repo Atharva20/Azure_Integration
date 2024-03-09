@@ -47,10 +47,10 @@ stages:
               backendServiceArm: '$(backendServiceArm)'
               workingDirectory: '$(workingDirectoryTerraform)'
 
-
           
       - job: logicapp_deploy
         displayName: 'LogicApp Deploy'
+        dependsOn: terraform_validate_and_apply
         steps:
           - template: yaml-templates/logicapp-deploy.yml@Azure_Integration_Templates
             parameters:
@@ -58,10 +58,9 @@ stages:
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
 
 
-
-
       - job: functionapp_deploy
         displayName: 'FunctionApp Deploy'
+        dependsOn: terraform_validate_and_apply
         steps:
           - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
             parameters:
