@@ -20,6 +20,7 @@ variables:
   backendServiceArm: 'AzureIntegration'
   workingDirectoryTerraform: '$(System.DefaultWorkingDirectory)/Terraform'
   workingDirectoryFunctionApp: '$(System.DefaultWorkingDirectory)/FunctionApp'
+  workingDirectoryLogicApp: '$(System.DefaultWorkingDirectory)/LogicApp'
   anyTfChanges: false
 
 resources:
@@ -56,10 +57,19 @@ stages:
         steps:
           - template: yaml-templates/functionapp-build-and-validate.yml@Azure_Integration_Templates
             parameters:
-              workingDirectory: '$(workingDirectoryFunctionApp)'
               projectName: 'FunctionApp'
               dotNetSdkVersion: 6.x
               projects: |
                 **/FunctionApp/*.csproj
                 **/Unit-Tests/*.csproj
 
+
+  - stage: logicapp_validate
+    displayName: 'LogicApp Validate'
+    jobs:
+      - job: logicapp_validate
+        displayName: 'LogicApp Validating'
+        steps:
+          - template: yaml-templates/logicapp-package.yml@Azure_Integration_Templates
+            parameters:
+              workingDirectory: '$(workingDirectoryLogicApp)'
