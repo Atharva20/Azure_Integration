@@ -20,7 +20,7 @@ locals {
   functionapp_storage_account_name = format("fasa%sfa%s%s%s", "az", var.env, "sea", var.instance)
 
   # Logic Name
-  logic_name                 = format("la-%s-%s-%s-%s", "azint", var.env, "sea", var.instance)  // la-azint-dev-sea-001
+  logic_name                 = format("la-%s-%s-%s-%s", "azint", var.env, "sea", var.instance) // la-azint-dev-sea-001
   logic_storage_account_name = format("lasa%sfa%s%s%s", "az", var.env, "sea", var.instance)
 
   # Service Bus
