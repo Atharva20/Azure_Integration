@@ -10,3 +10,4 @@ storage_access_role_defination = "Storage Blob Data Contributor"
 servicebus_access_role_defination = "Azure Service Bus Data Owner"
 container_access_type = "private"
 sku_servicebus = "Standard"
+

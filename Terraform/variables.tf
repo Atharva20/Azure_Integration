@@ -75,3 +75,4 @@ variable "container_access_type" {
   description = "The contianer access such public/private etc. should be specified."
   type        = string
 }
+

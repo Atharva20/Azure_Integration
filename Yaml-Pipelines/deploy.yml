@@ -30,6 +30,7 @@ resources:
       ref: 'refs/heads/main'
 
 stages:
+
   - stage: Dev_Deploy
     displayName: 'Dev Deploy'
     jobs:
@@ -68,82 +69,118 @@ stages:
               environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
             
 
+  - stage: Test_Deploy
+    displayName: 'Test Deploy'
+    jobs:
+      - job: terraform_validate_and_apply
+        displayName: 'Terraform Validate And Apply'
+        steps:
+          - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: './env-tfVars/test.tfvars'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectoryTerraform)'
+
+          
+      - job: logicapp_deploy
+        displayName: 'LogicApp Deploy'
+        dependsOn: terraform_validate_and_apply
+        steps:
+          - template: yaml-templates/logicapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              logicAppName: 'la-azint-test-sea-001'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
 
 
-  # - stage: Test_Deploy
-  #   displayName: 'Test Deploy'
-  #   jobs:
-  #     - job: terraform_validate_and_apply
-  #       displayName: 'Terraform Validate And Apply'
-  #       steps:
-  #         - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
-  #           parameters:
-  #             backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
-  #             backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
-  #             backendAzureRmContainerName: '$(backendAzureRmContainerName)'
-  #             backendAzureRmKey: '$(backendAzureRmKey)'
-  #             varFile: './env-tfVars/test.tfvars'
-  #             environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
-  #             backendServiceArm: '$(backendServiceArm)'
-  #             workingDirectory: '$(workingDirectoryTerraform)'
-
-  #     - job: functionapp_deploy
-  #       displayName: 'FunctionApp Deploy'
-  #       steps:
-  #         - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
-  #           parameters:
-  #             functionAppName: 'fa-azint-test-sea-001'
-  #             environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+      - job: functionapp_deploy
+        displayName: 'FunctionApp Deploy'
+        dependsOn: terraform_validate_and_apply
+        steps:
+          - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              functionAppName: 'fa-azint-test-sea-001'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
 
 
-  # - stage: Stag_Deploy
-  #   displayName: 'Stag Deploy'
-  #   jobs:
-  #     - job: terraform_validate_and_apply
-  #       displayName: 'Terraform Validate And Apply'
-  #       steps:
-  #         - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
-  #           parameters:
-  #             backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
-  #             backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
-  #             backendAzureRmContainerName: '$(backendAzureRmContainerName)'
-  #             backendAzureRmKey: '$(backendAzureRmKey)'
-  #             varFile: './env-tfVars/stag.tfvars'
-  #             environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
-  #             backendServiceArm: '$(backendServiceArm)'
-  #             workingDirectory: '$(workingDirectoryTerraform)'
+  - stage: Stag_Deploy
+    displayName: 'Stag Deploy'
+    jobs:
+      - job: terraform_validate_and_apply
+        displayName: 'Terraform Validate And Apply'
+        steps:
+          - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: './env-tfVars/stag.tfvars'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectoryTerraform)'
 
-  #     - job: functionapp_deploy
-  #       displayName: 'FunctionApp Deploy'
-  #       steps:
-  #         - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
-  #           parameters:
-  #             functionAppName: 'fa-azint-stag-sea-001'
-  #             environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+          
+      - job: logicapp_deploy
+        displayName: 'LogicApp Deploy'
+        dependsOn: terraform_validate_and_apply
+        steps:
+          - template: yaml-templates/logicapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              logicAppName: 'la-azint-stag-sea-001'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
 
 
-  # - stage: Prod_Deploy
-  #   displayName: 'Prod Deploy'
-  #   jobs:
-  #     - job: terraform_validate_and_apply
-  #       displayName: 'Terraform Validate And Apply'
-  #       steps:
-  #         - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
-  #           parameters:
-  #             backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
-  #             backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
-  #             backendAzureRmContainerName: '$(backendAzureRmContainerName)'
-  #             backendAzureRmKey: '$(backendAzureRmKey)'
-  #             varFile: './env-tfVars/prod.tfvars'
-  #             environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
-  #             backendServiceArm: '$(backendServiceArm)'
-  #             workingDirectory: '$(workingDirectoryTerraform)'
+      - job: functionapp_deploy
+        displayName: 'FunctionApp Deploy'
+        dependsOn: terraform_validate_and_apply
+        steps:
+          - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              functionAppName: 'fa-azint-stag-sea-001'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
 
-  #     - job: functionapp_deploy
-  #       displayName: 'FunctionApp Deploy'
-  #       steps:
-  #         - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
-  #           parameters:
-  #             functionAppName: 'fa-azint-prod-sea-001'
-  #             environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+
+  - stage: Prod_Deploy
+    displayName: 'Prod Deploy'
+    jobs:
+      - job: terraform_validate_and_apply
+        displayName: 'Terraform Validate And Apply'
+        steps:
+          - template: yaml-templates/terraform-plan-and-apply.yml@Azure_Integration_Templates
+            parameters:
+              backendAzureRmResourceGroupName: '$(backendAzureRmResourceGroupName)'
+              backendAzureRmStorageAccountName: '$(backendAzureRmStorageAccountName)'
+              backendAzureRmContainerName: '$(backendAzureRmContainerName)'
+              backendAzureRmKey: '$(backendAzureRmKey)'
+              varFile: './env-tfVars/prod.tfvars'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+              backendServiceArm: '$(backendServiceArm)'
+              workingDirectory: '$(workingDirectoryTerraform)'
+
+          
+      - job: logicapp_deploy
+        displayName: 'LogicApp Deploy'
+        dependsOn: terraform_validate_and_apply
+        steps:
+          - template: yaml-templates/logicapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              logicAppName: 'la-azint-prod-sea-001'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+
+
+      - job: functionapp_deploy
+        displayName: 'FunctionApp Deploy'
+        dependsOn: terraform_validate_and_apply
+        steps:
+          - template: yaml-templates/functionapp-deploy.yml@Azure_Integration_Templates
+            parameters:
+              functionAppName: 'fa-azint-prod-sea-001'
+              environmentServiceNameAzureRM: '$(environmentServiceNameAzureRM)'
+
+
 

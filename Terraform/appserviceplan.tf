@@ -15,3 +15,4 @@ resource "azurerm_service_plan" "la-asp" {
   os_type             = var.os_type
   sku_name            = var.sku_name_logic
 }
+

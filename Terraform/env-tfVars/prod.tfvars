@@ -1,4 +1,4 @@
-env         = "test"
+env         = "prod"
 location    = "Southeast Asia"
 deploy_tier = true
 instance    = "001"

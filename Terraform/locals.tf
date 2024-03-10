@@ -34,3 +34,4 @@ locals {
   logic_appservice_name = format("la-asp-%s-%s-%s-%s", "azint", var.env, "sea", var.instance)
 
 }
+

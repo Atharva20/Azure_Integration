@@ -9,8 +9,7 @@ resource "azurerm_logic_app_standard" "testlogicapp" {
   version                    = "`4"
 
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME" = "node"
-    #"FUNCTIONS_EXTENSION_VERSION"  = "~4"
+    "FUNCTIONS_WORKER_RUNTIME"            = "node"
     "WEBSITE_NODE_DEFAULT_VERSION"        = "~18"
     "WEBSITE_RUN_FROM_PACKAGE"            = "1"
     "client_storage_account_url"          = local.client_storage_account_url
@@ -21,3 +20,4 @@ resource "azurerm_logic_app_standard" "testlogicapp" {
     type = "SystemAssigned"
   }
 }
+

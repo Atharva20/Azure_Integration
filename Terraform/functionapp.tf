@@ -28,7 +28,6 @@ resource "azurerm_windows_function_app" "azureintegration" {
     "WEBSITE_RUN_FROM_PACKAGE"            = "1"
     "WEBSITE_ENABLE_SYNC_UPDATE_SITE"     = "true"
     "WEBSITE_RUN_FROM_ZIP"                = "1"
-    #"FUNCTIONS_EXTENSION_VERSION"         = "~4"
     # "AzureWebJobs.PullMsgFromTargetBlobStorage.Disabled" = true
   }
 
@@ -65,3 +64,5 @@ resource "azurerm_windows_function_app" "azureintegration" {
 # }
 
 #####################################################
+
+
